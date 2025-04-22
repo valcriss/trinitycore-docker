@@ -19,7 +19,8 @@ class ConfigurationWriter {
       DATABASE_HOST: configuration.getDatabaseHost(),
       DATABASE_PORT: configuration.getDatabasePort(),
       DATABASE_USER: configuration.getDatabaseUser(),
-      DATABASE_PASSWORD: configuration.getDatabasePassword()
+      DATABASE_PASSWORD: configuration.getDatabasePassword(),
+      EXTERNAL_IP_ADDRESS: configuration.getPublicIpAddress(),
     };
 
     return this.processConfiguration(inputFilePath, outputFilePath, replacements);
