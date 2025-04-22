@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <title>TrinityCore 335 Docker 1.0.0</title>
+</head>
+
+<body class="bg-black text-green-500 font-mono p-5 m-0">
+  <div id="login-container" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center">
+    <div class="bg-gray-800 p-5 rounded">
+      <h2 class="text-lg text-white mb-4">Login</h2>
+      <input id="username" type="text" placeholder="Username" class="mb-2 p-2 w-full bg-gray-700 text-white rounded">
+      <input id="password" type="password" placeholder="Password"
+        class="mb-4 p-2 w-full bg-gray-700 text-white rounded">
+      <button id="login-button" class="bg-green-500 text-white p-2 w-full rounded">Login</button>
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-7xl">
+    <div class="bg-[#111] border border-gray-800 p-1 mb-1 flex flex-row">
+      <div class="basis-1/4">
+        <div class="mx-2" id="authserver-offline" style="display: block;">
+          <img src="./img/red-circle.svg" alt="Auth Server Offline" class="w-4 h-4 inline-block mr-2"><span
+            class="text-sm text-red-500">Auth Server Offline</span>
+        </div>
+        <div class="mx-2" id="authserver-online" style="display: none;">
+          <img src="./img/green-circle.svg" alt="Auth Server Offline" class="w-4 h-4 inline-block mr-2"><span
+            class="text-sm text-green-500">Auth Server Online</span>
+        </div>
+      </div>
+      <div class="basis-1/4">
+        <div class="mx-2" id="worldserver-offline" style="display: block;">
+          <img src="./img/red-circle.svg" alt="World Server Offline" class="w-4 h-4 inline-block mr-2"><span
+            class="text-sm text-red-500">World Server Offline</span>
+        </div>
+        <div class="mx-2" id="worldserver-online" style="display: none;">
+          <img src="./img/green-circle.svg" alt="World Server Offline" class="w-4 h-4 inline-block mr-2"><span
+            class="text-sm text-green-500">World Server Online</span>
+        </div>
+      </div>
+    </div>
+    <div id="terminal"
+      class="p-2.5 h-[70vh] mb-1 text-xs overflow-y-auto whitespace-pre-wrap bg-[#111] border border-gray-800 text-[#0f0]">
+    </div>
+    <input id="input" type="text" placeholder="Send a command..."
+      class="text-xs border border-gray-800 w-full p-2.5 bg-[#111] text-[#0f0] outline-none">
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const terminal = document.getElementById('terminal');
+    const input = document.getElementById('input');
+    const authserverOffline = document.getElementById('authserver-offline');
+    const authserverOnline = document.getElementById('authserver-online');
+    const worldserverOffline = document.getElementById('worldserver-offline');
+    const worldserverOnline = document.getElementById('worldserver-online');
+
+    socket.on('worldserver_state', (data) => {
+      terminal.textContent = data.output + '\n';
+      worldserverOffline.style.display = data.running ? 'none' : 'block';
+      worldserverOnline.style.display = data.running ? 'block' : 'none';
+      terminal.scrollTop = terminal.scrollHeight;
+    });
+
+    socket.on('authserver_state', (data) => {
+      authserverOffline.style.display = data.running ? 'none' : 'block';
+      authserverOnline.style.display = data.running ? 'block' : 'none';
+    });
+
+    const commandHistory = [];
+    let historyIndex = -1;
+
+    function getSuggestions(input, commands) {
+      if(input.trim() === '') {
+        return { suggestions: [], path: '' };
+      }
+      
+      const parts = input.split(/\s+/);
+      console.log('Input parts:', parts);
+
+      let currentLevel = commands;
+      let suggestions = [];
+      let path = '';
+
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i].toLowerCase().trim();
+        console.log('Current part:', part);
+        if (currentLevel.hasOwnProperty(part)) {
+          currentLevel = currentLevel[part];
+          path += part + ' ';
+        } else {
+          if (input.endsWith(' ')) {
+            suggestions = Object.keys(currentLevel);
+          } else {
+            suggestions = Object.keys(currentLevel).filter(cmd => cmd.startsWith(part));
+          }
+          break;
+        }
+      }
+
+      console.log('Suggestions:', suggestions);
+      return { suggestions: suggestions, path: path.trim() };
+    }
+
+    const suggestionBox = document.createElement('div');
+    suggestionBox.id = 'suggestion-box';
+    suggestionBox.className = 'text-xs';
+    suggestionBox.style.position = 'absolute';
+    suggestionBox.style.backgroundColor = '#111';
+    suggestionBox.style.border = '1px solid #444';
+    suggestionBox.style.color = '#0f0';
+    suggestionBox.style.zIndex = '1000';
+    suggestionBox.style.display = 'none';
+    document.body.appendChild(suggestionBox);
+
+    function showSuggestions(suggestions, path, inputElement) {
+      suggestionBox.innerHTML = '';
+      if (suggestions.length === 0) {
+        suggestionBox.style.display = 'none';
+        return;
+      }
+
+      suggestions.forEach(suggestion => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.textContent = suggestion;
+        suggestionItem.style.padding = '5px';
+        suggestionItem.style.cursor = 'pointer';
+
+        suggestionItem.addEventListener('click', () => {
+          inputElement.value = (path.trim().length > 0 ? path.trim() + ' ' : '') + suggestion; // Set the full suggestion as the input value
+          suggestionBox.style.display = 'none';
+          inputElement.focus();
+        });
+
+        suggestionBox.appendChild(suggestionItem);
+      });
+
+      const rect = inputElement.getBoundingClientRect();
+      suggestionBox.style.left = `${rect.left}px`;
+      suggestionBox.style.top = `${rect.bottom}px`;
+      suggestionBox.style.width = `${rect.width}px`;
+      suggestionBox.style.display = 'block';
+    }
+
+    async function loadGmCommands() {
+      try {
+        const response = await fetch('/gm-commands.json');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Loaded GM Commands:', data); // Debugging log
+          return data;
+        } else {
+          console.error('Failed to load GM commands');
+          return {};
+        }
+      } catch (error) {
+        console.error('Error loading GM commands:', error);
+        return {};
+      }
+    }
+
+    (async () => {
+      const gmCommands = await loadGmCommands();
+
+      input.addEventListener('input', () => {
+        const result = getSuggestions(input.value, gmCommands);
+        showSuggestions(result.suggestions, result.path, input);
+      });
+    })();
+
+    document.addEventListener('click', (e) => {
+      if (!suggestionBox.contains(e.target) && e.target !== input) {
+        suggestionBox.style.display = 'none';
+      }
+    });
+
+    let suggestionIndex = -1; // Track the current suggestion index
+
+    input.addEventListener('keydown', (e) => {
+      if (suggestionBox.style.display !== 'none') {
+        const suggestions = suggestionBox.children;
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (suggestionIndex > 0) {
+            suggestionIndex--;
+          } else {
+            suggestionIndex = suggestions.length - 1;
+          }
+          updateSuggestionHighlight(suggestions);
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (suggestionIndex < suggestions.length - 1) {
+            suggestionIndex++;
+          } else {
+            suggestionIndex = 0;
+          }
+          updateSuggestionHighlight(suggestions);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (suggestionIndex >= 0 && suggestionIndex < suggestions.length) {
+            suggestions[suggestionIndex].click();
+            suggestionIndex = -1; // Reset the index after selection
+          }
+        }
+      } else {
+        if (e.key === 'Enter') {
+          const command = input.value;
+          if (command.trim() !== '') {
+            commandHistory.push(command);
+            historyIndex = commandHistory.length;
+            socket.emit('worldserver_input', command);
+            input.value = '';
+          }
+        } else if (e.key === 'ArrowUp') {
+          if (historyIndex > 0) {
+            historyIndex--;
+            input.value = commandHistory[historyIndex];
+          } else if (historyIndex === 0) {
+            input.value = commandHistory[historyIndex];
+          }
+        } else if (e.key === 'ArrowDown') {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            input.value = commandHistory[historyIndex];
+          } else if (historyIndex === commandHistory.length - 1) {
+            input.value = '';
+          }
+        }
+      }
+    });
+
+    function updateSuggestionHighlight(suggestions) {
+      Array.from(suggestions).forEach((suggestion, index) => {
+        if (index === suggestionIndex) {
+          suggestion.style.backgroundColor = '#222'; // Highlight the selected suggestion
+        } else {
+          suggestion.style.backgroundColor = 'transparent';
+        }
+      });
+    }
+
+    const loginContainer = document.getElementById('login-container');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginButton = document.getElementById('login-button');
+
+    function showLogin() {
+      loginContainer.classList.remove('hidden');
+    }
+
+    function hideLogin() {
+      loginContainer.classList.add('hidden');
+    }
+
+    function isAuthenticated() {
+      return sessionStorage.getItem('authenticated') === 'true';
+    }
+
+    async function authenticate(username, password) {
+      try {
+        const response = await fetch('/api/authenticate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (response.ok) {
+          return true;
+        } else {
+          const data = await response.json();
+          alert(data.message || 'Authentication failed');
+          return false;
+        }
+      } catch (error) {
+        console.error('Error during authentication:', error);
+        alert('An error occurred. Please try again later.');
+        return false;
+      }
+    }
+
+    async function checkAuthenticationRequirement() {
+      try {
+        const response = await fetch('/api/needAuthentication');
+        if (response.ok) {
+          const data = await response.json();
+          return data.needAuthentication;
+        } else {
+          console.error('Failed to check authentication requirement');
+          return false;
+        }
+      } catch (error) {
+        console.error('Error checking authentication requirement:', error);
+        return false;
+      }
+    }
+
+    (async () => {
+      const needAuthentication = await checkAuthenticationRequirement();
+      if (needAuthentication && !isAuthenticated()) {
+        showLogin();
+      } else {
+        hideLogin();
+      }
+    })();
+
+    if (!isAuthenticated()) {
+      showLogin();
+    }
+
+    loginButton.addEventListener('click', async () => {
+      const username = usernameInput.value;
+      const password = passwordInput.value;
+
+      if (await authenticate(username, password)) {
+        sessionStorage.setItem('authenticated', 'true');
+        hideLogin();
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "trinitycore-docker",
+  "version": "1.0.0",
+  "description": "TrinityCore Docker project with Node.js",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.1",
+    "@types/mustache": "^4.2.5",
+    "@types/socket.io": "^3.0.1",
+    "axios": "^1.8.4",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.0",
+    "socket.io": "^4.8.1"
+  }
+}

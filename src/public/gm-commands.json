@@ -1,0 +1,445 @@
+{
+  "account": {
+    "create": {},
+    "delete": {},
+    "onlinelist": {},
+    "set": {
+      "gmlevel": {},
+      "password": {},
+      "addon": {}
+    }
+  },
+  "achievement": {
+    "add": {}
+  },
+  "character": {
+    "deleted": {
+      "delete": {},
+      "old": {},
+      "list": {},
+      "restore": {}
+    },
+    "erase": {},
+    "level": {},
+    "changefaction": {},
+    "changerace": {},
+    "customize": {},
+    "rename": {},
+    "reputation": {},
+    "titles": {}
+  },
+  "server": {
+    "exit": {},
+    "set": {
+      "loglevel": {},
+      "closed": {},
+      "motd": {},
+      "plimit": {},
+      "restart": {},
+      "shutdown": {}
+    },
+    "corpses": {},
+    "idlerestart": {
+      "cancel": {}
+    },
+    "idleshutdown": {
+      "cancel": {}
+    },
+    "plimit": {},
+    "restart": {
+      "cancel": {}
+    },
+    "shutdown": {
+      "cancel": {}
+    }
+  },
+  "additem": {
+    "set": {}
+  },
+  "aura": {},
+  "ban": {
+    "account": {},
+    "character": {},
+    "ip": {},
+    "playeraccount": {}
+  },
+  "baninfo": {
+    "account": {},
+    "character": {},
+    "ip": {}
+  },
+  "bank": {},
+  "banlist": {
+    "account": {},
+    "character": {},
+    "ip": {}
+  },
+  "bf": {
+    "enable": {},
+    "start": {},
+    "stop": {},
+    "switch": {},
+    "timer": {}
+  },
+  "bindsight": {},
+  "cast": {
+    "back": {},
+    "dest": {},
+    "dist": {},
+    "self": {},
+    "target": {}
+  },
+  "channel": {
+    "set": {
+      "ownership": {}
+    }
+  },
+  "cometome": {},
+  "cooldown": {},
+  "damage": {},
+  "debug": {
+    "arena": {},
+    "bg": {},
+    "Mod32Value": {},
+    "moveflags": {}
+  },
+  "dev": {},
+  "die": {},
+  "disable": {
+    "add": {
+      "achievement_criteria": {},
+      "battleground": {},
+      "map": {},
+      "outdoorpvp": {},
+      "quest": {},
+      "spell": {},
+      "vmap": {}
+    },
+    "remove": {
+      "achievement_criteria": {},
+      "battleground": {},
+      "map": {},
+      "outdoorpvp": {},
+      "quest": {},
+      "spell": {},
+      "vmap": {}
+    }
+  },
+  "dismount": {},
+  "flusharenapoints": {},
+  "gm": {
+    "fly": {},
+    "list": {}
+  },
+  "group": {
+    "disband": {},
+    "leader": {},
+    "remove": {}
+  },
+  "guild": {
+    "create": {},
+    "delete": {},
+    "invite": {},
+    "rank": {},
+    "uninvite": {}
+  },
+  "hidearea": {},
+  "instance": {
+    "listbinds": {},
+    "savedata": {},
+    "stats": {},
+    "unbind": {}
+  },
+  "learn": {
+    "all": {
+      "my": {
+        "class": {},
+        "pettalents": {},
+        "spells": {},
+        "talents": {}
+      },
+      "blizzard": {},
+      "crafts": {},
+      "recipes": {}
+    }
+  },
+  "levelup": {},
+  "lfg": {
+    "clean": {},
+    "options": {},
+    "group": {},
+    "player": {},
+    "queue": {}
+  },
+  "linkgrave": {},
+  "list": {
+    "auras": {},
+    "creature": {},
+    "item": {},
+    "object": {}
+  },
+  "lookup": {
+    "creature": {},
+    "faction": {},
+    "item": {},
+    "itemset": {},
+    "map": {},
+    "object": {},
+    "quest": {},
+    "skill": {},
+    "spell": {},
+    "spellid": {},
+    "taxinode": {},
+    "event": {},
+    "player": {
+      "account": {},
+      "email": {},
+      "ip": {}
+    },
+    "title": {},
+    "gender": {},
+    "reputation": {},
+    "standstate": {}
+  },
+  "maxskill": {},
+  "modify": {
+    "phase": {}
+  },
+  "movegens": {},
+  "neargrave": {},
+  "pdump": {
+    "copy": {},
+    "load": {},
+    "write": {}
+  },
+  "possess": {},
+  "quest": {
+    "add": {},
+    "complete": {},
+    "remove": {},
+    "reward": {}
+  },
+  "reload": {
+    "access_requirement": {},
+    "achievement_criteria_data": {},
+    "achievement_reward": {},
+    "all": {
+      "achievement": {},
+      "area": {},
+      "eventai": {},
+      "gossips": {},
+      "item": {},
+      "locales": {},
+      "loot": {},
+      "npc": {},
+      "quest": {},
+      "scripts": {},
+      "spell": {}
+    },
+    "areatrigger_involvedrelation": {},
+    "areatrigger_tavern": {},
+    "areatrigger_teleport": {},
+    "auctions": {},
+    "autobroadcast": {},
+    "command": {},
+    "conditions": {},
+    "config": {},
+    "creature_loot_template": {},
+    "creature_onkill_reputation": {},
+    "creature_questender": {},
+    "creature_queststarter": {},
+    "creature_template": {},
+    "creature_text": {},
+    "disables": {},
+    "disenchant_loot_template": {},
+    "event_scripts": {},
+    "fishing_loot_template": {},
+    "game_graveyard_zone": {},
+    "game_tele": {},
+    "gameobject_loot_template": {},
+    "gameobject_questender": {},
+    "gameobject_queststarter": {},
+    "gm_tickets": {},
+    "gossip_menu": {},
+    "gossip_menu_option": {},
+    "item_enchantment_template": {},
+    "item_loot_template": {},
+    "item_set_names": {},
+    "lfg_dungeon_rewards": {},
+    "locales_creature": {},
+    "locales_creature_text": {},
+    "locales_gameobject": {},
+    "locales_gossip_menu_option": {},
+    "locales_item": {},
+    "locales_item_set_name": {},
+    "locales_npc_text": {},
+    "locales_page_text": {},
+    "locales_points_of_interest": {},
+    "locales_quest": {},
+    "mail_level_reward": {},
+    "mail_loot_template": {},
+    "milling_loot_template": {},
+    "npc_trainer": {},
+    "npc_vendor": {},
+    "page_text": {},
+    "pickpocketing_loot_template": {},
+    "points_of_interest": {},
+    "prospecting_loot_template": {},
+    "quest_poi": {},
+    "quest_template": {},
+    "reference_loot_template": {},
+    "reserved_name": {},
+    "skill_discovery_template": {},
+    "skill_extra_item_template": {},
+    "skill_fishing_base_level": {},
+    "skinning_loot_template": {},
+    "smart_scripts": {},
+    "spell_area": {},
+    "spell_bonus_data": {},
+    "spell_group": {},
+    "spell_group_stack_rules": {},
+    "spell_learn_spell": {},
+    "spell_linked_spell": {},
+    "spell_loot_template": {},
+    "spell_pet_auras": {},
+    "spell_proc": {},
+    "spell_proc_event": {},
+    "spell_required": {},
+    "spell_scripts": {},
+    "spell_target_position": {},
+    "spell_threats": {},
+    "trinity_string": {},
+    "vehicle_accessory": {},
+    "vehicle_template_accessory": {},
+    "waypoint_data": {},
+    "waypoint_scripts": {},
+    "creature_linked_respawn": {}
+  },
+  "reset": {
+    "achievements": {},
+    "all": {},
+    "honor": {},
+    "level": {},
+    "spells": {},
+    "stats": {},
+    "talents": {}
+  },
+  "respawn": {},
+  "revive": {},
+  "send": {
+    "items": {},
+    "message": {},
+    "money": {}
+  },
+  "setskill": {},
+  "showarea": {},
+  "tele": {
+    "add": {},
+    "del": {}
+  },
+  "ticket": {
+    "delete": {},
+    "reset": {}
+  },
+  "unaura": {},
+  "unban": {
+    "account": {},
+    "character": {},
+    "ip": {}
+  },
+  "unbindsight": {},
+  "unlearn": {},
+  "unpossess": {},
+  "wchange": {},
+  "wpgps": {},
+  "cheat": {
+    "casttime": {},
+    "cooldown": {},
+    "explore": {},
+    "god": {},
+    "power": {},
+    "status": {},
+    "taxi": {},
+    "waterwalk": {}
+  },
+  "combatstop": {},
+  "demorph": {},
+  "event": {
+    "activelist": {},
+    "start": {},
+    "stop": {}
+  },
+  "gobject": {
+    "add": {
+      "temp": {}
+    },
+    "delete": {},
+    "info": {},
+    "move": {},
+    "near": {},
+    "set": {
+      "phase": {},
+      "state": {}
+    },
+    "target": {},
+    "turn": {}
+  },
+  "honor": {
+    "add": {
+      "kill": {}
+    },
+    "update": {}
+  },
+  "itemmove": {},
+  "kick": {},
+  "morph": {},
+  "npc": {
+    "add": {
+      "item": {},
+      "move": {},
+      "temp": {}
+    },
+    "delete": {
+      "item": {}
+    },
+    "follow": {
+      "stop": {}
+    },
+    "move": {},
+    "set": {
+      "factionid": {},
+      "flag": {},
+      "level": {},
+      "link": {},
+      "model": {},
+      "movetype": {},
+      "phase": {},
+      "spawndist": {},
+      "spawntime": {},
+      "allowmove": {},
+      "data": {},
+      "entry": {}
+    },
+    "info": {},
+    "playemote": {}
+  },
+  "pet": {
+    "create": {},
+    "learn": {},
+    "unlearn": {}
+  },
+  "pinfo": {},
+  "playall": {},
+  "repairitems": {},
+  "titles": {
+    "add": {},
+    "current": {},
+    "remove": {},
+    "setmask": {}
+  },
+  "wp": {
+    "add": {},
+    "event": {},
+    "reload": {}
+  }
+}

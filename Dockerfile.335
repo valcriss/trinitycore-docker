@@ -1,0 +1,81 @@
+#-----------------------------------------------------------------------------
+# Build arguments
+#-----------------------------------------------------------------------------
+ARG TRINITYCORE_BRANCH=3.3.5
+ARG TRINITYCORE_VERSION=3.3.5
+
+#-----------------------------------------------------------------------------
+# Step 1 : Build the backend
+#-----------------------------------------------------------------------------
+FROM node:23-slim AS build_backend
+
+COPY ./package.json /app/package.json
+COPY ./package-lock.json /app/package-lock.json
+COPY ./tsconfig.json /app/tsconfig.json
+COPY ./src /app/src
+
+WORKDIR /app
+RUN npm ci
+RUN npm run build
+COPY ./src/resources /app/dist/resources
+COPY ./src/public /app/dist/public
+COPY ./node_modules /app/dist/node_modules
+
+#-----------------------------------------------------------------------------
+# Step 2 : Build TrinityCore
+#-----------------------------------------------------------------------------
+FROM ubuntu:22.04 AS trinitycore_build
+
+ARG TRINITYCORE_BRANCH
+
+# Install only build dependencies
+RUN apt-get -yq update && apt-get -yq install curl git clang make gcc g++ libmysqlclient-dev \
+    libssl-dev libbz2-dev libreadline-dev libncurses-dev libboost-all-dev mysql-client ca-certificates && \
+    update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100 && \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang 100 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install newer CMake version
+RUN curl -L https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.sh -o /tmp/cmake-install.sh \
+    && chmod u+x /tmp/cmake-install.sh \
+    && /tmp/cmake-install.sh --skip-license --prefix=/usr/local \
+    && rm /tmp/cmake-install.sh
+
+RUN mkdir -p /app
+
+WORKDIR /app
+
+RUN git clone -b ${TRINITYCORE_BRANCH} --depth=1 https://github.com/TrinityCore/TrinityCore.git TrinityCore && \
+    mkdir -p /app/TrinityCore/build && \
+    cd /app/TrinityCore/build && \
+    cmake ../ -DCMAKE_INSTALL_PREFIX=/app/server && \
+    make -j 4 && \
+    make install && \
+    find /app/TrinityCore -mindepth 1 -maxdepth 1 ! -name 'sql' -exec rm -rf {} +
+
+#-----------------------------------------------------------------------------
+# Step 3 : Final image
+#-----------------------------------------------------------------------------
+FROM ubuntu:22.04
+
+ARG TRINITYCORE_VERSION
+
+COPY --from=build_backend /app/dist /app/backend
+COPY --from=build_backend /app/package.json /app/backend/package.json
+COPY --from=build_backend /app/package-lock.json /app/backend/package-lock.json
+COPY --from=build_backend /app/node_modules /app/backend/node_modules
+COPY --from=trinitycore_build /app/server /app/server
+COPY --from=trinitycore_build /app/TrinityCore /app/TrinityCore
+
+## Install dependencies
+RUN apt-get -yq update && apt-get -yq install curl && \
+    curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
+    apt-get -yq install nodejs git libmysqlclient-dev libssl-dev libbz2-dev \
+    libreadline-dev libncurses-dev libboost-all-dev mysql-client ca-certificates p7zip-full && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN cd /app/backend && chmod +x /app/backend/resources/*.sh && mkdir /app/server/data && mkdir /app/server/logs
+
+EXPOSE 3000
+ENV TRINITYCORE_VERSION=${TRINITYCORE_VERSION}
+CMD ["node", "/app/backend/server.js"]

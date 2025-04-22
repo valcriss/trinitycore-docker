@@ -1,0 +1,46 @@
+services:
+  trinitycore:
+    build:
+      context: .
+      dockerfile: Dockerfile.1110
+    environment:
+      - PUBLIC_IP_ADDRESS=127.0.0.1
+      # - ACCESS_USERNAME=admin
+      # - ACCESS_PASSWORD=admin
+    volumes:
+      - ./server/data:/app/server/data
+      - ./client:/app/client # Mount the client directory    
+      - ./server/logs:/app/server/logs      
+      - type: tmpfs
+        target: /app/tmp
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+      - "1119:1119"
+      - "8081:8081"
+      - "3000:3000" # Web server
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "8g"
+        reservations:
+          cpus: "4.0"
+          memory: "8g"
+  database:
+    image: mysql:8.4.4
+    environment:
+      MYSQL_ROOT_PASSWORD: trinityroot
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ptrinityroot"]
+      interval: 10s
+      timeout: 5s 
+      retries: 3
+volumes:
+  db_data:
