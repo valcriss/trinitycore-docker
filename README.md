@@ -1,8 +1,5 @@
 # TrinityCore Docker Environment
 ![Action State](https://github.com/valcriss/trinitycore-docker/actions/workflows/docker-build-push.yml/badge.svg)  
-![Docker Pulls 3.3.5](https://img.shields.io/docker/pulls/danielsilvestre37/trinitycore-docker:3.3.5)
-![Docker Pulls 4.4.2](https://img.shields.io/docker/pulls/danielsilvestre37/trinitycore-docker:4.4.2)
-![Docker Pulls 11.1.0](https://img.shields.io/docker/pulls/danielsilvestre37/trinitycore-docker:11.1.0)
 
 This project provides a Dockerized environment for experimenting, developing, and researching with the [TrinityCore](https://www.trinitycore.info/) World of Warcraft server emulator. It is intended for educational and non-commercial use only.
 
