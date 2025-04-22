@@ -9,6 +9,8 @@ services:
       # - ACCESS_PASSWORD=admin
     volumes:
       - ./server/data:/app/server/data
+      #- ./fullchain.pem:/app/server/bin/bnetserver.cert.pem
+      #- ./privkey.pem:/app/server/bin/bnetserver.key.pem      
       - ./client:/app/client # Mount the client directory    
       - ./server/logs:/app/server/logs      
       - type: tmpfs
