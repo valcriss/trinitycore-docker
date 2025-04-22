@@ -28,8 +28,10 @@ const appInitializer = new AppInitializer(profile.getInitializer());
 (async () => {
 
   consoleHelper.writeBox('TrinityCore Docker 1.0.0 [ ' + profile.getName() + ' ]');
-  
-  await appInitializer.initialize();
+
+  if (!await appInitializer.initialize()) {
+    return;
+  }
 
   consoleHelper.writeBox('Application Startup Complete');
 
@@ -52,7 +54,7 @@ const appInitializer = new AppInitializer(profile.getInitializer());
       code: worldServerRunner.getCode()
     });
   });
-  /*
+
   authServerRunner.start(() => {
     io.emit('authserver_state', {
       output: authServerRunner.getOutput(),
@@ -68,7 +70,7 @@ const appInitializer = new AppInitializer(profile.getInitializer());
       code: worldServerRunner.getCode()
     });
   });
-  */
+
   // Start the server
   server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

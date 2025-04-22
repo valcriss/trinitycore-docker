@@ -20,11 +20,11 @@ class AppInitializer {
       return false;
     }
 
-    if (!this.initializer.updateAuthServerConfiguration()) {
+    if (!await this.initializer.updateAuthServerConfiguration()) {
       return false;
     }
 
-    if (!this.initializer.updateWorldServerConfiguration()) {
+    if (!await this.initializer.updateWorldServerConfiguration()) {
       return false;
     }
 

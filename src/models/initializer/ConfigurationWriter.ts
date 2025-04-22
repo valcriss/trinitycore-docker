@@ -12,7 +12,7 @@ class ConfigurationWriter {
   }
 
   public writeAuthServerConfiguration() {
-    const inputFilePath = path.resolve(__dirname, '../../resources/' + this.profile.getSourceAuthConfigurationPath);
+    const inputFilePath = path.resolve(__dirname, '../../resources/', this.profile.getSourceAuthConfigurationPath());
     const outputFilePath = this.profile.getAuthServerConfigurationPath();
 
     const replacements = {
@@ -27,14 +27,14 @@ class ConfigurationWriter {
 
   // Écrire la configuration pour WorldServer
   writeWorldServerConfiguration() {
-    const inputFilePath = path.resolve(__dirname, '../../resources/' + this.profile.getSourceWorldConfigurationPath());
+    const inputFilePath = path.resolve(__dirname, '../../resources/', this.profile.getSourceWorldConfigurationPath());
     const outputFilePath = this.profile.getWorldServerConfigurationPath();
 
-    const replacements: Record<string, string | null> = {
-      "DATABASE_HOST": configuration.getDatabaseHost(),
-      "DATABASE_PORT": configuration.getDatabasePort(),
-      "DATABASE_USER": configuration.getDatabaseUser(),
-      "DATABASE_PASSWORD": configuration.getDatabasePassword(),
+    const replacements = {
+      DATABASE_HOST: configuration.getDatabaseHost(),
+      DATABASE_PORT: configuration.getDatabasePort(),
+      DATABASE_USER: configuration.getDatabaseUser(),
+      DATABASE_PASSWORD: configuration.getDatabasePassword()
     };
 
     return this.processConfiguration(inputFilePath, outputFilePath, replacements);
@@ -60,6 +60,7 @@ class ConfigurationWriter {
       fs.writeFileSync(outputFilePath, content, 'utf8');
       return true;
     } catch (error) {
+      console.error(`Error processing configuration file: ${error}`);
       return false;
     }
   }
