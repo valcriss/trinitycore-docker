@@ -19,7 +19,6 @@ RUN npm ci
 RUN npm run build
 COPY ./src/resources /app/dist/resources
 COPY ./src/public /app/dist/public
-COPY ./node_modules /app/dist/node_modules
 
 #-----------------------------------------------------------------------------
 # Step 2 : Build TrinityCore
