@@ -5,7 +5,7 @@ class CommandExecuter {
   private process: ChildProcessWithoutNullStreams | null = null;
   private showOutput: boolean = true;
   
-  constructor(showOutput: boolean = true) {
+  constructor(showOutput: boolean = false) {
     this.showOutput = showOutput;
   }
 
