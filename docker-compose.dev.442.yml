@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.442
+    restart: unless-stopped
     environment:
       - PUBLIC_IP_ADDRESS=127.0.0.1
       # - ACCESS_USERNAME=admin

@@ -1,6 +1,7 @@
 services:
   trinitycore-docker:
     image: danielsilvestre37/trinitycore-docker:3.3.5
+    restart: unless-stopped
     environment:
       - PUBLIC_IP_ADDRESS=127.0.0.1
       # - REALM_NAME=TrinityCore Server
@@ -29,6 +30,7 @@ services:
     #      memory: "8g"
   database:
     image: mysql:8.4.4
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: trinityroot
     volumes:
