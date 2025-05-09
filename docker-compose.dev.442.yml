@@ -34,6 +34,7 @@ services:
           memory: "8g"
   database:
     image: mysql:8.4.4
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: trinityroot
     ports:
