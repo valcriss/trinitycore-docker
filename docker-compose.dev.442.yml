@@ -44,7 +44,7 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ptrinityroot"]
       interval: 10s
-      timeout: 5s 
+      timeout: 30s 
       retries: 3
 volumes:
   db_data:
