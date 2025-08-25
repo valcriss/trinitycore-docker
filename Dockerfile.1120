@@ -2,7 +2,7 @@
 # Build arguments
 #-----------------------------------------------------------------------------
 ARG TRINITYCORE_BRANCH=master
-ARG TRINITYCORE_VERSION=11.1.0
+ARG TRINITYCORE_VERSION=11.2.0
 
 #-----------------------------------------------------------------------------
 # Step 1 : Build the backend

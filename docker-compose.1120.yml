@@ -1,6 +1,6 @@
 services:
   trinitycore-docker:
-    image: danielsilvestre37/trinitycore-docker:11.1.0
+    image: danielsilvestre37/trinitycore-docker:11.2.0
     restart: unless-stopped
     environment:
       - PUBLIC_IP_ADDRESS=127.0.0.1
