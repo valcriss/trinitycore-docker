@@ -40,11 +40,11 @@ jobs:
           tags: |
             danielsilvestre37/trinitycore-docker:4.4.2            
 
-      - name: Build and push 11.1.0 image
+      - name: Build and push 11.2.0 image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.1110
+          file: ./Dockerfile.1120
           push: true
           tags: |
-            danielsilvestre37/trinitycore-docker:11.1.0             
+            danielsilvestre37/trinitycore-docker:11.2.0             

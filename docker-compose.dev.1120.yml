@@ -2,7 +2,7 @@ services:
   trinitycore:
     build:
       context: .
-      dockerfile: Dockerfile.1110
+      dockerfile: Dockerfile.1120
     restart: unless-stopped
     environment:
       - PUBLIC_IP_ADDRESS=127.0.0.1
