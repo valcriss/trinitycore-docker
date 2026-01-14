@@ -5,6 +5,7 @@ import configuration from '../configuration/AppConfiguration';
 import DatabaseInitializer from './DatabaseInitializer';
 import ConfigurationWriter from './ConfigurationWriter';
 import MapInitializer from './MapInitializer';
+import IInitializer from './IInitializer';
 
 class InitializerRegular implements IInitializer {
 

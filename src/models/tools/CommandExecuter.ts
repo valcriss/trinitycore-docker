@@ -1,5 +1,8 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 
+type OutputHandler = (data: Buffer) => void;
+type CloseHandler = (code: number | null) => void;
+
 class CommandExecuter {
 
   private process: ChildProcessWithoutNullStreams | null = null;
@@ -16,7 +19,14 @@ class CommandExecuter {
     }
   }
 
-  async execute(command: string, args: Array<string>, cwd: string, onStdout: Function | null = null, onStderr: Function | null = null, onClose: Function | null = null) {
+  async execute(
+    command: string,
+    args: Array<string>,
+    cwd: string,
+    onStdout: OutputHandler | null = null,
+    onStderr: OutputHandler | null = null,
+    onClose: CloseHandler | null = null
+  ) {
     let result = true;
     const exectPromise = new Promise<void>((resolve, reject) => {
       this.process = spawn(command, args, { cwd: cwd });

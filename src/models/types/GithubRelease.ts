@@ -11,3 +11,5 @@ type GithubRelease = {
     content_type: string;
   }[];
 }
+
+export default GithubRelease;

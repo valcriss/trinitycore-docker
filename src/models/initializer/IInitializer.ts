@@ -8,3 +8,5 @@ interface IInitializer {
   updateRealmInformations(): Promise<boolean>;
   checkClientMapData(): Promise<boolean>;
 }
+
+export default IInitializer;
