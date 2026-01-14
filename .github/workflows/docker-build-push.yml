@@ -8,6 +8,18 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: 3.3.5
+            dockerfile: ./Dockerfile.335
+            tag: danielsilvestre37/trinitycore-docker:3.3.5
+          - name: 4.4.2
+            dockerfile: ./Dockerfile.442
+            tag: danielsilvestre37/trinitycore-docker:4.4.2
+          - name: 11.2.0
+            dockerfile: ./Dockerfile.1120
+            tag: danielsilvestre37/trinitycore-docker:11.2.0
 
     steps:
       - name: Checkout code
@@ -22,29 +34,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push 3.3.5 image
+      - name: Build and push image (${{ matrix.name }})
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.335
+          file: ${{ matrix.dockerfile }}
           push: true
-          tags: |
-            danielsilvestre37/trinitycore-docker:3.3.5
-
-      - name: Build and push 4.4.2 image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile.442
-          push: true
-          tags: |
-            danielsilvestre37/trinitycore-docker:4.4.2            
-
-      - name: Build and push 11.2.0 image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile.1120
-          push: true
-          tags: |
-            danielsilvestre37/trinitycore-docker:11.2.0             
+          tags: ${{ matrix.tag }}
