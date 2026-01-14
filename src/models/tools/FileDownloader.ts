@@ -1,9 +1,5 @@
 import fs from 'fs';
 import axios from 'axios';
-import { promisify } from 'util';
-
-const existDir = promisify(fs.exists);
-const createDir = promisify(fs.mkdir);
 
 class FileDownloader {
   /**
@@ -17,10 +13,10 @@ class FileDownloader {
   async downloadFile(url:string, path:string, name:string) {
       const response = await axios.get(url, { responseType: 'stream' });
 
-      const dir = await existDir(path);
+      const dir = fs.existsSync(path);
 
       if (!dir) {
-          await createDir(path);
+          await fs.promises.mkdir(path, { recursive: true });
       }
 
       response.data.pipe(fs.createWriteStream(`${path}/${name}`));
