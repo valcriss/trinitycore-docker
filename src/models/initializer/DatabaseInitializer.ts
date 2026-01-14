@@ -6,6 +6,7 @@ import https from 'https';
 import IProfile from "../profiles/IProfile";
 import FileDownloader from "../tools/FileDownloader";
 import CommandExecuter from "../tools/CommandExecuter";
+import GithubRelease from "../types/GithubRelease";
 
 class DatabaseInitializer {
   private database: Database;
@@ -34,7 +35,7 @@ class DatabaseInitializer {
       }
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -51,12 +52,12 @@ class DatabaseInitializer {
       const downloadUrl = latestRelease.assets[0].browser_download_url;
       const filename = latestRelease.assets[0].name;
 
-      let fileDownloader = new FileDownloader();
+      const fileDownloader = new FileDownloader();
       await fileDownloader.downloadFile(downloadUrl, '/app/server/bin', filename);
 
       const extractPath = '/app/server/bin/';
 
-      let result = await commandExecuter.execute(`/usr/bin/7z`, [`x`, `/app/server/bin/${filename}`, `-o${extractPath}`, `-y`], '/app/server/bin');
+      const result = await commandExecuter.execute(`/usr/bin/7z`, [`x`, `/app/server/bin/${filename}`, `-o${extractPath}`, `-y`], '/app/server/bin');
       if (!result) {
         return false;
       }
@@ -64,7 +65,7 @@ class DatabaseInitializer {
       fs.unlinkSync('/app/server/bin/' + filename);
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -115,13 +116,13 @@ class DatabaseInitializer {
           try {
             const json = JSON.parse(data);
             resolve(json);
-          } catch (error) {
+          } catch {
             reject(new Error('Erreur lors du parsing JSON'));
           }
         });
       });
 
-      req.on('error', (error) => {
+      req.on('error', () => {
         reject(new Error('Erreur lors de la requête HTTPS'));
       });
 

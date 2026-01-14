@@ -1,5 +1,7 @@
 import CommandExecuter from "./CommandExecuter";
 
+type UpdateHandler = () => void;
+
 class CommandRunner {
 
   private binaryPath: string;
@@ -20,21 +22,21 @@ class CommandRunner {
     this.code = 0;
   }
 
-  start(onUpdate: Function | null = null) {
-    this.commandExecuter.execute(this.binaryPath, this.params, this.binaryCwd, (stdout: any) => {
+  start(onUpdate: UpdateHandler | null = null) {
+    this.commandExecuter.execute(this.binaryPath, this.params, this.binaryCwd, (stdout: Buffer) => {
       this.buffer += stdout.toString();
       this.truncateBuffer();
       if (onUpdate) {
         onUpdate();
       }
-    }, (stderr: any) => {
+    }, (stderr: Buffer) => {
       this.buffer += stderr.toString();
       this.truncateBuffer();
       if (onUpdate) {
         onUpdate();
       }
-    }, (code: number) => {
-      this.code = code;
+    }, (code: number | null) => {
+      this.code = code ?? 0;
       this.running = false;
       if (onUpdate) {
         onUpdate();

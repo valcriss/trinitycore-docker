@@ -1,3 +1,5 @@
+import IInitializer from "../initializer/IInitializer";
+
 interface IProfile {
   getName(): string;
   getAuthServerBinary(): string;

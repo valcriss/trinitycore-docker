@@ -1,4 +1,4 @@
-import express, { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import configuration from '../models/configuration/AppConfiguration';
 
 const router = Router();

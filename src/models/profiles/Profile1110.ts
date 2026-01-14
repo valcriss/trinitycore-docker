@@ -1,5 +1,6 @@
 import InitializerRegular from "../initializer/InitializerRegular";
 import IProfile from "./IProfile";
+import IInitializer from "../initializer/IInitializer";
 
 class Profile1110 implements IProfile {
   getName(): string {

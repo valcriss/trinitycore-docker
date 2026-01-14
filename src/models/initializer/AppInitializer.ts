@@ -1,3 +1,5 @@
+import IInitializer from "./IInitializer";
+
 class AppInitializer {
 
   private initializer: IInitializer;
