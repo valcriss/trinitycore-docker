@@ -159,6 +159,30 @@ The web interface now includes a secure authentication mechanism to restrict acc
 
 > ⚠️ Ensure you configure strong credentials to secure your server.
 
+## Environment Overrides For Trinity Config
+
+You can override TrinityCore `.conf` properties at container startup with environment variables.
+
+- Worldserver prefix: `TC_WORLD__`
+- Auth/Bnet prefix: `TC_AUTH__`
+- Key format: replace `.` with `__`
+
+Examples:
+
+```yaml
+environment:
+	- TC_WORLD__Rate__XP__Kill=3
+	- TC_WORLD__PlayerLimit=200
+	- TC_WORLD__Motd="Welcome to my realm"
+	- TC_AUTH__Battlenet__PasswordChangeSecurity=0
+```
+
+How it works:
+- `TC_WORLD__Rate__XP__Kill=3` becomes `Rate.XP.Kill = 3` in `worldserver.conf`
+- `TC_AUTH__Battlenet__PasswordChangeSecurity=0` becomes `Battlenet.PasswordChangeSecurity = 0` in auth config
+- If a key already exists, its value is replaced.
+- If a key does not exist, it is appended at the end of the file.
+
 ## ❓ Notes
 - A compatible WoW client is required, but **not provided**.
 - All databases (`auth`, `characters`, `world`) are automatically created and populated at first run.

@@ -90,4 +90,47 @@ describe("ConfigurationWriter", () => {
     const content = writeFileSync.mock.calls[0][1] as string;
     expect(content).toBe("value=");
   });
+
+  it("applies world config overrides from environment variables", () => {
+    readFileSync.mockReturnValue("Rate.XP.Kill = 1\nMotd = \"Welcome\"\n");
+    existsSync.mockReturnValue(true);
+
+    vi.spyOn(fs, "readFileSync").mockImplementation(readFileSync);
+    vi.spyOn(fs, "writeFileSync").mockImplementation(writeFileSync);
+    vi.spyOn(fs, "existsSync").mockImplementation(existsSync);
+
+    process.env.TC_WORLD__Rate__XP__Kill = "5";
+    process.env.TC_WORLD__Motd = "\"Hello from env\"";
+
+    const writer = new ConfigurationWriter(makeProfile() as never);
+    const result = writer.writeWorldServerConfiguration();
+
+    expect(result).toBe(true);
+    const content = writeFileSync.mock.calls[0][1] as string;
+    expect(content).toContain("Rate.XP.Kill = 5");
+    expect(content).toContain("Motd = \"Hello from env\"");
+
+    delete process.env.TC_WORLD__Rate__XP__Kill;
+    delete process.env.TC_WORLD__Motd;
+  });
+
+  it("appends missing world config keys from environment variables", () => {
+    readFileSync.mockReturnValue("RealmID = 1\n");
+    existsSync.mockReturnValue(true);
+
+    vi.spyOn(fs, "readFileSync").mockImplementation(readFileSync);
+    vi.spyOn(fs, "writeFileSync").mockImplementation(writeFileSync);
+    vi.spyOn(fs, "existsSync").mockImplementation(existsSync);
+
+    process.env.TC_WORLD__PlayerLimit = "500";
+
+    const writer = new ConfigurationWriter(makeProfile() as never);
+    const result = writer.writeWorldServerConfiguration();
+
+    expect(result).toBe(true);
+    const content = writeFileSync.mock.calls[0][1] as string;
+    expect(content).toContain("PlayerLimit = 500");
+
+    delete process.env.TC_WORLD__PlayerLimit;
+  });
 });

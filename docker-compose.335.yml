@@ -7,6 +7,13 @@ services:
       # - REALM_NAME=TrinityCore Server
       # - ACCESS_USERNAME=admin
       # - ACCESS_PASSWORD=admin
+      # Optional Trinity config overrides at startup:
+      # Pattern: TC_WORLD__Section__Key=value  -> Section.Key = value
+      # Pattern: TC_AUTH__Section__Key=value   -> Section.Key = value
+      # - TC_WORLD__Rate__XP__Kill=3
+      # - TC_WORLD__PlayerLimit=200
+      # - TC_WORLD__Motd="Welcome to my realm"
+      # - TC_AUTH__Battlenet__PasswordChangeSecurity=0
     volumes:
       - server_data:/app/server/data
       - server_logs:/app/server/logs
