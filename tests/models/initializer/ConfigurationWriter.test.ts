@@ -133,4 +133,44 @@ describe("ConfigurationWriter", () => {
 
     delete process.env.TC_WORLD__PlayerLimit;
   });
+
+  it("appends overrides even when file has no trailing newline", () => {
+    readFileSync.mockReturnValue("RealmID = 1");
+    existsSync.mockReturnValue(true);
+
+    vi.spyOn(fs, "readFileSync").mockImplementation(readFileSync);
+    vi.spyOn(fs, "writeFileSync").mockImplementation(writeFileSync);
+    vi.spyOn(fs, "existsSync").mockImplementation(existsSync);
+
+    process.env.TC_WORLD__PlayerLimit = "250";
+
+    const writer = new ConfigurationWriter(makeProfile() as never);
+    const result = writer.writeWorldServerConfiguration();
+
+    expect(result).toBe(true);
+    const content = writeFileSync.mock.calls[0][1] as string;
+    expect(content).toContain("RealmID = 1\nPlayerLimit = 250\n");
+
+    delete process.env.TC_WORLD__PlayerLimit;
+  });
+
+  it("ignores malformed override keys without config name", () => {
+    readFileSync.mockReturnValue("RealmID = 1\n");
+    existsSync.mockReturnValue(true);
+
+    vi.spyOn(fs, "readFileSync").mockImplementation(readFileSync);
+    vi.spyOn(fs, "writeFileSync").mockImplementation(writeFileSync);
+    vi.spyOn(fs, "existsSync").mockImplementation(existsSync);
+
+    process.env["TC_WORLD__"] = "999";
+
+    const writer = new ConfigurationWriter(makeProfile() as never);
+    const result = writer.writeWorldServerConfiguration();
+
+    expect(result).toBe(true);
+    const content = writeFileSync.mock.calls[0][1] as string;
+    expect(content).toBe("RealmID = 1\n");
+
+    delete process.env["TC_WORLD__"];
+  });
 });
