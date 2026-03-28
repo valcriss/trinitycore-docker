@@ -30,7 +30,12 @@ describe("MapInitializer", () => {
   });
 
   it("runs extraction when initializing", async () => {
-    executeMock.mockResolvedValue(true);
+    existsSyncMock.mockReturnValue(true);
+    executeMock.mockImplementation((_cmd, _args, _cwd, stdoutCb, stderrCb) => {
+      stdoutCb?.(Buffer.from("maps"));
+      stderrCb?.(Buffer.from("warn"));
+      return Promise.resolve(true);
+    });
     const initializer = new MapInitializer({ getExtractScriptPath: () => "extract.sh" } as never);
 
     const result = await initializer.initialize();
@@ -41,6 +46,16 @@ describe("MapInitializer", () => {
 
   it("returns false when extraction fails", async () => {
     executeMock.mockResolvedValue(false);
+    const initializer = new MapInitializer({ getExtractScriptPath: () => "extract.sh" } as never);
+
+    const result = await initializer.initialize();
+
+    expect(result).toBe(false);
+  });
+
+  it("returns false when extraction command succeeds but maps are still missing", async () => {
+    existsSyncMock.mockReturnValue(false);
+    executeMock.mockResolvedValue(true);
     const initializer = new MapInitializer({ getExtractScriptPath: () => "extract.sh" } as never);
 
     const result = await initializer.initialize();

@@ -1,3 +1,5 @@
+import bootstrapTracker from "../bootstrap/BootstrapTracker";
+
 class ConsoleHelper {
 
   private lineWidth: number = 80;
@@ -22,32 +24,36 @@ class ConsoleHelper {
   beginBox(content: string): void {
     const titleWidth = this.lineWidth - 4;
     const centeredTitle = this.centerContent(content, titleWidth);
-    console.info(this.generateLine('╔', '═', '╗'));
-    console.info(`║ ${centeredTitle} ║`);
-    console.info(this.generateLine('╠', '═', '╣'));
+    console.info(this.generateLine('â•”', 'â•', 'â•—'));
+    console.info(`â•‘ ${centeredTitle} â•‘`);
+    console.info(this.generateLine('â• ', 'â•', 'â•£'));
+    bootstrapTracker.addLog(content);
   }
 
   endBox(content: string): void {
-    const contentLine = `║ ${content.padEnd(this.lineWidth - 3)}║`;
+    const contentLine = `â•‘ ${content.padEnd(this.lineWidth - 3)}â•‘`;
     console.info(contentLine);
-    console.info(this.generateLine('╚', '═', '╝'));
+    console.info(this.generateLine('â•š', 'â•', 'â•'));
+    bootstrapTracker.addLog(content);
   }
 
   writeBoxLine(content: string): void {
     if (content.length > this.lineWidth - 3) {
       content = content.substring(0, this.lineWidth - 3);
     }
-    const contentLine = `║ ${content.padEnd(this.lineWidth - 3)}║`;
+    const contentLine = `â•‘ ${content.padEnd(this.lineWidth - 3)}â•‘`;
     console.info(contentLine);
+    bootstrapTracker.addLog(content);
   }
 
   writeBox(content: string): void {
     const titleWidth = this.lineWidth - 4;
     const centeredTitle = this.centerContent(content, titleWidth);
-    console.info(this.generateLine('╔', '═', '╗'));
-    console.info(`║ ${centeredTitle} ║`);
-    console.info(this.generateLine('╚', '═', '╝'));
+    console.info(this.generateLine('â•”', 'â•', 'â•—'));
+    console.info(`â•‘ ${centeredTitle} â•‘`);
+    console.info(this.generateLine('â•š', 'â•', 'â•'));
     this.newLine();
+    bootstrapTracker.addLog(content);
   }
 
   newLine(): void {

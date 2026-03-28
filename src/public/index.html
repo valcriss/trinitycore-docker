@@ -1,332 +1,824 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <title>TrinityCore 335 Docker 1.0.0</title>
+  <title>TrinityCore Dashboard</title>
   <style>
-    .log { 
-	font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace; 
-}
-  </style>
-</head>
-
-<body class="bg-black text-green-500 font-mono p-5 m-0">
-  <div id="login-container" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center">
-    <div class="bg-gray-800 p-5 rounded">
-      <h2 class="text-lg text-white mb-4">Login</h2>
-      <input id="username" type="text" placeholder="Username" class="mb-2 p-2 w-full bg-gray-700 text-white rounded">
-      <input id="password" type="password" placeholder="Password"
-        class="mb-4 p-2 w-full bg-gray-700 text-white rounded">
-      <button id="login-button" class="bg-green-500 text-white p-2 w-full rounded">Login</button>
-    </div>
-  </div>
-
-  <div class="mx-auto max-w-7xl">
-    <div class="bg-[#111] border border-gray-800 p-1 mb-1 flex flex-row">
-      <div class="basis-1/4">
-        <div class="mx-2" id="authserver-offline" style="display: block;">
-          <img src="./img/red-circle.svg" alt="Auth Server Offline" class="w-4 h-4 inline-block mr-2"><span
-            class="text-sm text-red-500">Auth Server Offline</span>
-        </div>
-        <div class="mx-2" id="authserver-online" style="display: none;">
-          <img src="./img/green-circle.svg" alt="Auth Server Offline" class="w-4 h-4 inline-block mr-2"><span
-            class="text-sm text-green-500">Auth Server Online</span>
-        </div>
-      </div>
-      <div class="basis-1/4">
-        <div class="mx-2" id="worldserver-offline" style="display: block;">
-          <img src="./img/red-circle.svg" alt="World Server Offline" class="w-4 h-4 inline-block mr-2"><span
-            class="text-sm text-red-500">World Server Offline</span>
-        </div>
-        <div class="mx-2" id="worldserver-online" style="display: none;">
-          <img src="./img/green-circle.svg" alt="World Server Offline" class="w-4 h-4 inline-block mr-2"><span
-            class="text-sm text-green-500">World Server Online</span>
-        </div>
-      </div>
-    </div>
-    <div id="terminal"
-      class="log p-2.5 h-[70vh] mb-1 text-xs overflow-y-auto whitespace-pre-wrap bg-[#111] border border-gray-800 text-[#0f0]">
-    </div>
-    <input id="input" type="text" placeholder="Send a command..."
-      class="text-xs border border-gray-800 w-full p-2.5 bg-[#111] text-[#0f0] outline-none">
-  </div>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-    const terminal = document.getElementById('terminal');
-    const input = document.getElementById('input');
-    const authserverOffline = document.getElementById('authserver-offline');
-    const authserverOnline = document.getElementById('authserver-online');
-    const worldserverOffline = document.getElementById('worldserver-offline');
-    const worldserverOnline = document.getElementById('worldserver-online');
-
-    socket.on('worldserver_state', (data) => {
-      terminal.textContent = data.output + '\n';
-      worldserverOffline.style.display = data.running ? 'none' : 'block';
-      worldserverOnline.style.display = data.running ? 'block' : 'none';
-      terminal.scrollTop = terminal.scrollHeight;
-    });
-
-    socket.on('authserver_state', (data) => {
-      authserverOffline.style.display = data.running ? 'none' : 'block';
-      authserverOnline.style.display = data.running ? 'block' : 'none';
-    });
-
-    const commandHistory = [];
-    let historyIndex = -1;
-
-    function getSuggestions(input, commands) {
-      if(input.trim() === '') {
-        return { suggestions: [], path: '' };
-      }
-      
-      const parts = input.split(/\s+/);
-      console.log('Input parts:', parts);
-
-      let currentLevel = commands;
-      let suggestions = [];
-      let path = '';
-
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i].toLowerCase().trim();
-        console.log('Current part:', part);
-        if (currentLevel.hasOwnProperty(part)) {
-          currentLevel = currentLevel[part];
-          path += part + ' ';
-        } else {
-          if (input.endsWith(' ')) {
-            suggestions = Object.keys(currentLevel);
-          } else {
-            suggestions = Object.keys(currentLevel).filter(cmd => cmd.startsWith(part));
-          }
-          break;
-        }
-      }
-
-      console.log('Suggestions:', suggestions);
-      return { suggestions: suggestions, path: path.trim() };
+    :root{
+      --bg:#eef2f7;
+      --panel:#ffffff;
+      --panel-soft:#f7f9fc;
+      --line:#d7dee7;
+      --line-strong:#c5cfda;
+      --text:#18222d;
+      --muted:#647285;
+      --blue:#355cd7;
+      --blue-soft:#eef3ff;
+      --green:#2d8d67;
+      --green-soft:#ebf6f1;
+      --amber:#9b6814;
+      --amber-soft:#fbf1df;
+      --red:#ba4b4b;
+      --red-soft:#fbeaea;
+      --mono:"Cascadia Code","IBM Plex Mono","Consolas",monospace;
+      --ui:"Inter","Segoe UI Variable","Aptos","Segoe UI",sans-serif;
+      --display:"Inter","Segoe UI Variable","Aptos","Segoe UI",sans-serif;
+      --shadow-lg:0 18px 48px rgba(21,33,53,.08);
+      --shadow-md:0 8px 22px rgba(21,33,53,.05);
+      --radius-xl:22px;
+      --radius-lg:18px;
+      --radius-md:14px;
+      --radius-sm:12px;
     }
 
-    const suggestionBox = document.createElement('div');
-    suggestionBox.id = 'suggestion-box';
-    suggestionBox.className = 'text-xs';
-    suggestionBox.style.position = 'absolute';
-    suggestionBox.style.backgroundColor = '#111';
-    suggestionBox.style.border = '1px solid #444';
-    suggestionBox.style.color = '#0f0';
-    suggestionBox.style.zIndex = '1000';
-    suggestionBox.style.display = 'none';
-    document.body.appendChild(suggestionBox);
+    *{box-sizing:border-box}
 
-    function showSuggestions(suggestions, path, inputElement) {
-      suggestionBox.innerHTML = '';
-      if (suggestions.length === 0) {
-        suggestionBox.style.display = 'none';
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:var(--ui);
+      background:
+        radial-gradient(circle at top left, rgba(53,92,215,.08), transparent 28%),
+        linear-gradient(180deg, #f6f8fb 0%, var(--bg) 100%);
+    }
+
+    .app{
+      width:min(1320px,calc(100vw - 28px));
+      margin:14px auto;
+      display:grid;
+      gap:14px;
+    }
+
+    .panel{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(255,255,255,.82);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow-lg);
+      backdrop-filter:blur(12px);
+    }
+
+    .panel-inner{padding:18px 20px}
+
+    .topbar{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    h1,h2,h3{margin:0;color:var(--text)}
+
+    h1{
+      font-family:var(--display);
+      font-size:36px;
+      line-height:1;
+      letter-spacing:-.03em;
+      font-weight:750;
+    }
+
+    h2{
+      font-family:var(--display);
+      font-size:28px;
+      line-height:1.05;
+      letter-spacing:-.02em;
+      font-weight:720;
+    }
+
+    h3{
+      font-size:16px;
+      line-height:1.2;
+      font-weight:700;
+      letter-spacing:-.02em;
+    }
+
+    .subtitle{
+      margin:8px 0 0;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:14px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 13px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      border:1px solid transparent;
+    }
+
+    .pill::before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:currentColor;
+    }
+
+    .pill.idle,.pill.pending{background:#f1f5f9;color:#627384;border-color:#dde5ef}
+    .pill.initializing,.pill.running{background:var(--amber-soft);color:var(--amber);border-color:#eed8aa}
+    .pill.ready,.pill.success{background:var(--green-soft);color:var(--green);border-color:#cde7d9}
+    .pill.failed,.pill.error{background:var(--red-soft);color:var(--red);border-color:#ebcccc}
+
+    .init-shell{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      gap:14px;
+      min-height:calc(100vh - 126px);
+    }
+
+    .sidebar,
+    .detail{
+      min-height:0;
+    }
+
+    .section-title{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-end;
+      margin-bottom:14px;
+      padding-bottom:12px;
+      border-bottom:1px solid rgba(206,216,226,.8);
+    }
+
+    .section-copy{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .metric{
+      padding:12px 13px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(212,221,230,.9);
+      background:linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
+      box-shadow:var(--shadow-md);
+    }
+
+    .label{
+      margin-bottom:8px;
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-weight:700;
+    }
+
+    .value{
+      font-size:15px;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    .steps-list{
+      display:grid;
+      gap:8px;
+      padding-right:4px;
+    }
+
+    .step-row{
+      width:100%;
+      text-align:left;
+      padding:12px 13px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(213,221,229,.92);
+      background:linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      cursor:pointer;
+      transition:border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+      box-shadow:var(--shadow-md);
+    }
+
+    .step-row:hover{
+      transform:translateY(-1px);
+      border-color:#c2cedb;
+    }
+
+    .step-row.active{
+      border-color:#adc0e9;
+      box-shadow:0 10px 24px rgba(53,92,215,.08);
+      background:linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+    }
+
+    .step-row-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+    }
+
+    .step-row-title{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      min-width:0;
+    }
+
+    .step-dot{
+      width:11px;
+      height:11px;
+      margin-top:4px;
+      border-radius:50%;
+      background:#b9c6d6;
+      flex:0 0 auto;
+      box-shadow:0 0 0 4px #eef3f8;
+    }
+
+    .step-dot.running{background:#d8a340;box-shadow:0 0 0 4px #fbf1df}
+    .step-dot.success{background:#3aa877;box-shadow:0 0 0 4px #ebf6f1}
+    .step-dot.error{background:#d06262;box-shadow:0 0 0 4px #fbeaea}
+
+    .step-index{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:3px;
+    }
+
+    .step-row p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    .detail-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:16px;
+      padding-bottom:14px;
+      border-bottom:1px solid rgba(206,216,226,.8);
+    }
+
+    .detail-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .detail-card{
+      padding:12px 13px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(212,221,230,.92);
+      background:var(--panel-soft);
+    }
+
+    .detail-message{
+      margin-bottom:14px;
+      padding:14px 16px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(212,221,230,.92);
+      background:linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      line-height:1.65;
+      color:var(--text);
+      font-size:15px;
+    }
+
+    .log-panel{
+      border:1px solid rgba(211,220,229,.95);
+      border-radius:var(--radius-lg);
+      background:linear-gradient(180deg, #f9fbfd 0%, #f4f7fa 100%);
+      overflow:hidden;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+    }
+
+    .log-head{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(211,220,229,.95);
+      background:rgba(255,255,255,.58);
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+    }
+
+    .log-body,
+    .proclog{
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.7;
+      color:#223043;
+      overflow:auto;
+    }
+
+    .log-body{
+      padding:14px;
+      height:calc(100vh - 360px);
+      min-height:320px;
+    }
+
+    .runtime-shell{
+      display:grid;
+      gap:14px;
+    }
+
+    .runtime-tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .runtime-tab{
+      border:1px solid rgba(196,207,219,.95);
+      background:linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:999px;
+      font:inherit;
+      font-weight:650;
+      cursor:pointer;
+      transition:border-color .16s ease, box-shadow .16s ease, transform .16s ease, background .16s ease;
+      box-shadow:0 4px 12px rgba(18,31,53,.04);
+    }
+
+    .runtime-tab:hover{
+      transform:translateY(-1px);
+      border-color:#bcc9d8;
+      box-shadow:0 8px 18px rgba(18,31,53,.08);
+    }
+
+    .runtime-tab.active{
+      background:linear-gradient(180deg,#4469dd 0%, #3258ce 100%);
+      border-color:#3258ce;
+      color:#fff;
+      box-shadow:0 10px 20px rgba(50,88,206,.18);
+    }
+
+    .process-panel{
+      display:none;
+    }
+
+    .process-panel.active{
+      display:block;
+    }
+
+    .process{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(255,255,255,.82);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow-lg);
+      overflow:hidden;
+    }
+
+    .process-inner{padding:18px 20px 20px}
+
+    .process-head{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      margin-bottom:16px;
+      padding-bottom:14px;
+      border-bottom:1px solid rgba(206,216,226,.8);
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .card{
+      padding:12px 13px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(212,221,230,.92);
+      background:linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
+    }
+
+    .proclog{
+      border:1px solid rgba(211,220,229,.95);
+      border-radius:var(--radius-md);
+      background:linear-gradient(180deg, #f9fbfd 0%, #f4f7fa 100%);
+      padding:14px;
+      min-height:236px;
+      max-height:320px;
+      margin-bottom:14px;
+    }
+
+    .row,.actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .actions .btn{
+      padding:8px 11px;
+      font-size:13px;
+      border-radius:10px;
+    }
+
+    .input{
+      flex:1;
+      width:100%;
+      padding:13px 14px;
+      border:1px solid rgba(205,215,225,.95);
+      border-radius:var(--radius-sm);
+      background:rgba(255,255,255,.96);
+      color:var(--text);
+      font:inherit;
+      outline:none;
+      transition:border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .input:focus{
+      border-color:#9fb4ea;
+      box-shadow:0 0 0 4px rgba(53,92,215,.08);
+    }
+
+    .btn{
+      border:1px solid rgba(196,207,219,.95);
+      background:linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+      color:var(--text);
+      padding:12px 14px;
+      border-radius:var(--radius-sm);
+      font:inherit;
+      font-weight:650;
+      cursor:pointer;
+      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+      box-shadow:0 4px 12px rgba(18,31,53,.04);
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      border-color:#bcc9d8;
+      box-shadow:0 8px 18px rgba(18,31,53,.08);
+    }
+
+    .btn.primary{
+      background:linear-gradient(180deg, #4469dd 0%, #3258ce 100%);
+      border-color:#3258ce;
+      color:#fff;
+      box-shadow:0 10px 20px rgba(50,88,206,.18);
+    }
+
+    .btn.primary:hover{
+      box-shadow:0 12px 24px rgba(50,88,206,.24);
+    }
+
+    .btn:disabled{
+      cursor:not-allowed;
+      opacity:.58;
+      transform:none;
+      box-shadow:none;
+    }
+
+    .empty{
+      padding:20px;
+      border:1px dashed var(--line-strong);
+      border-radius:var(--radius-md);
+      color:var(--muted);
+      text-align:center;
+      background:rgba(248,250,252,.72);
+    }
+
+    .hidden{display:none!important}
+
+    .suggest{
+      position:fixed;
+      z-index:1000;
+      display:none;
+      max-height:250px;
+      overflow:auto;
+      background:#fff;
+      border:1px solid rgba(201,211,222,.95);
+      border-radius:var(--radius-md);
+      box-shadow:0 16px 36px rgba(18,31,53,.12);
+      padding:6px;
+    }
+
+    .suggest-item{
+      padding:9px 10px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    .suggest-item.active,
+    .suggest-item:hover{
+      background:#eef4ff;
+    }
+
+    .login{
+      position:fixed;
+      inset:0;
+      background:rgba(21,33,53,.18);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:40;
+    }
+
+    .login.hidden{display:none}
+
+    .loginbox{
+      width:min(440px,calc(100vw - 24px));
+      background:rgba(255,255,255,.98);
+      border:1px solid rgba(255,255,255,.84);
+      border-radius:var(--radius-xl);
+      box-shadow:0 24px 60px rgba(18,31,53,.12);
+      padding:22px 24px;
+    }
+
+    @media (max-width:1180px){
+      .init-shell{grid-template-columns:280px minmax(0,1fr)}
+    }
+
+    @media (max-width:980px){
+      .init-shell{
+        grid-template-columns:1fr;
+      }
+
+      .log-body{
+        height:360px;
+      }
+    }
+
+    @media (max-width:760px){
+      .app{
+        width:min(100vw - 18px,1320px);
+        margin:10px auto 18px;
+      }
+
+      .panel-inner,
+      .process-inner,
+      .loginbox{
+        padding:16px;
+      }
+
+      h1{font-size:30px}
+      h2{font-size:24px}
+
+      .topbar,
+      .detail-top{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .detail-grid,
+      .stats{
+        grid-template-columns:1fr;
+      }
+
+      .row{
+        flex-direction:column;
+      }
+
+      .log-body{
+        height:320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="login" class="login hidden">
+    <div class="loginbox">
+      <h2 style="margin:0 0 8px;font-family:var(--display);font-size:30px;letter-spacing:-.03em;">Access</h2>
+      <p class="subtitle">Authentication is required to send commands.</p>
+      <input id="username" name="username" autocomplete="username" class="input" type="text" placeholder="Username">
+      <div style="height:10px"></div>
+      <input id="password" name="password" autocomplete="current-password" class="input" type="password" placeholder="Password">
+      <div style="height:14px"></div>
+      <button id="loginBtn" class="btn primary" style="width:100%">Unlock</button>
+    </div>
+  </div>
+
+  <div class="app stack">
+    <section class="panel">
+      <div class="panel-inner">
+        <div class="topbar">
+          <div>
+            <h1>TrinityCore Dashboard</h1>
+            <p class="subtitle">Bootstrap tracking and process supervision.</p>
+          </div>
+          <div id="globalPill" class="pill idle">Idle</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="initializationSection" class="panel">
+      <div class="panel-inner">
+        <div class="section-head">
+          <div>
+            <h2>Initialization</h2>
+            <p>Overview on the left, detailed step context on the right.</p>
+          </div>
+        </div>
+
+        <div class="init-shell">
+          <aside class="sidebar">
+            <div class="summary-grid">
+              <div class="metric">
+                <div class="label">Bootstrap</div>
+                <div id="initPhase" class="value">Idle</div>
+              </div>
+              <div class="metric">
+                <div class="label">Progress</div>
+                <div id="initProgress" class="value">0 / 8</div>
+              </div>
+            </div>
+
+            <div id="stepsList" class="steps-list"></div>
+          </aside>
+
+          <section class="detail">
+            <div class="detail-top">
+              <div>
+                <h2 id="detailTitle">Initialization</h2>
+                <p id="detailDescription" class="subtitle">Waiting for the backend to report its first state.</p>
+              </div>
+              <div id="detailPill" class="pill idle">Idle</div>
+            </div>
+
+            <div class="detail-grid">
+              <div class="detail-card">
+                <div class="label">Started</div>
+                <div id="detailStarted" class="value">Waiting</div>
+              </div>
+              <div class="detail-card">
+                <div class="label">Ended</div>
+                <div id="detailEnded" class="value">Waiting</div>
+              </div>
+              <div class="detail-card">
+                <div class="label">Progress</div>
+                <div id="detailProgress" class="value">-</div>
+              </div>
+            </div>
+
+            <div id="detailMessage" class="detail-message">No detail available yet.</div>
+
+            <div class="log-panel">
+              <div class="log-head">
+                <div class="label" style="margin:0">Step logs</div>
+                <div id="detailLogCount" style="color:var(--muted);font-size:12px;font-weight:700">0 lines</div>
+              </div>
+              <div id="detailLog" class="log-body">No step-specific logs yet.</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="processSection" class="runtime-shell hidden">
+      <div class="runtime-tabs">
+        <button id="authTab" class="runtime-tab" type="button">Auth / Bnet</button>
+        <button id="worldTab" class="runtime-tab active" type="button">World</button>
+      </div>
+
+      <article id="authPanel" class="process process-panel">
+        <div class="process-inner">
+          <div class="process-head">
+            <div>
+              <h2>Auth / Bnet</h2>
+              <p class="subtitle">Process state and output.</p>
+            </div>
+            <div id="authPill" class="pill pending">Offline</div>
+          </div>
+          <div class="stats">
+            <div class="card"><div class="label">State</div><div id="authState" class="value">Offline</div></div>
+            <div class="card"><div class="label">Exit code</div><div id="authCode" class="value">0</div></div>
+            <div class="card"><div class="label">Last update</div><div id="authUpdated" class="value">Waiting</div></div>
+          </div>
+          <div id="authLog" class="proclog">Waiting for process output...</div>
+        </div>
+      </article>
+
+      <article id="worldPanel" class="process process-panel active">
+        <div class="process-inner">
+          <div class="process-head">
+            <div>
+              <h2>World</h2>
+              <p class="subtitle">Process state, quick actions and console.</p>
+            </div>
+            <div id="worldPill" class="pill pending">Offline</div>
+          </div>
+          <div class="stats">
+            <div class="card"><div class="label">State</div><div id="worldState" class="value">Offline</div></div>
+            <div class="card"><div class="label">Exit code</div><div id="worldCode" class="value">0</div></div>
+            <div class="card"><div class="label">Last update</div><div id="worldUpdated" class="value">Waiting</div></div>
+          </div>
+          <div id="worldLog" class="proclog">Waiting for process output...</div>
+          <div class="actions">
+            <button class="btn worldAction" data-command="server info">Server info</button>
+            <button class="btn worldAction" data-command="saveall">Save all</button>
+            <button class="btn worldAction" data-command="server shutdown 60" data-confirm="This will stop the world server in 60 seconds. Continue?">Shutdown 60s</button>
+          </div>
+          <div style="height:10px"></div>
+          <div class="row">
+            <input id="worldInput" class="input" type="text" placeholder="Send a command to worldserver">
+            <button id="worldSend" class="btn primary">Send</button>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+
+  <div id="suggest" class="suggest"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket=io(),$=id=>document.getElementById(id),state={bootstrap:{phase:"idle",headline:"Waiting for the backend to report its first state.",steps:[],events:[],logs:[]},auth:{output:"",running:false,code:0,startedAt:null,lastUpdatedAt:null},world:{output:"",running:false,code:0,startedAt:null,lastUpdatedAt:null},selectedStepId:null},gm={commands:{},history:[],historyIndex:-1,suggestions:[],index:-1};
+    const el={globalPill:$("globalPill"),initializationSection:$("initializationSection"),processSection:$("processSection"),initPhase:$("initPhase"),initProgress:$("initProgress"),stepsList:$("stepsList"),detailTitle:$("detailTitle"),detailDescription:$("detailDescription"),detailPill:$("detailPill"),detailStarted:$("detailStarted"),detailEnded:$("detailEnded"),detailProgress:$("detailProgress"),detailMessage:$("detailMessage"),detailLog:$("detailLog"),detailLogCount:$("detailLogCount"),authTab:$("authTab"),worldTab:$("worldTab"),authPanel:$("authPanel"),worldPanel:$("worldPanel"),authPill:$("authPill"),authState:$("authState"),authCode:$("authCode"),authUpdated:$("authUpdated"),authLog:$("authLog"),worldPill:$("worldPill"),worldState:$("worldState"),worldCode:$("worldCode"),worldUpdated:$("worldUpdated"),worldLog:$("worldLog"),worldInput:$("worldInput"),worldSend:$("worldSend"),suggest:$("suggest"),login:$("login"),username:$("username"),password:$("password"),loginBtn:$("loginBtn")};
+    const fmt=t=>{if(!t)return"Waiting";const d=new Date(t);return Number.isNaN(d.getTime())?"Waiting":new Intl.DateTimeFormat(undefined,{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(d)},label=s=>({idle:"Idle",initializing:"Initializing",ready:"Ready",failed:"Failed",pending:"Pending",running:"Running",success:"Ready",error:"Error"})[s]||s,setPill=(n,s,t)=>{n.className=`pill ${s}`;n.textContent=t};
+
+    function updateVisibility(){const phase=state.bootstrap.phase;const showInitialization=phase!=="ready";el.initializationSection.classList.toggle("hidden",!showInitialization);el.processSection.classList.toggle("hidden",showInitialization)}
+    function getStepById(id){return state.bootstrap.steps.find(step=>step.id===id)||null}
+    function getSelectedStep(){if(state.selectedStepId){const selected=getStepById(state.selectedStepId);if(selected)return selected}return state.bootstrap.steps.find(step=>step.status==="running"||step.status==="error")||state.bootstrap.steps[0]||null}
+    function getStepLogs(id){return state.bootstrap.logs.filter(log=>log.stepId===id)}
+
+    function renderStepList(){
+      const steps=state.bootstrap.steps;
+      el.stepsList.innerHTML="";
+      if(!steps.length){el.stepsList.innerHTML='<div class="empty">Initialization state not received yet.</div>';return}
+      steps.forEach((step,index)=>{
+        const active=state.selectedStepId===step.id||(!state.selectedStepId&&getSelectedStep()?.id===step.id);
+        const node=document.createElement("button");
+        node.type="button";
+        node.className=`step-row${active?" active":""}`;
+        node.innerHTML=`<div class="step-row-head"><div class="step-row-title"><span class="step-dot ${step.status}"></span><div><div class="step-index">${index+1}</div><h3>${step.title}</h3></div></div><span class="pill ${step.status}">${label(step.status)}</span></div><p>${step.message}</p>`;
+        node.addEventListener("click",()=>{state.selectedStepId=step.id;renderInitialization()});
+        el.stepsList.appendChild(node);
+      });
+    }
+
+    function renderDetail(){
+      const selected=getSelectedStep();
+      if(!selected){
+        el.detailTitle.textContent="Initialization";
+        el.detailDescription.textContent="Waiting for the backend to report its first state.";
+        setPill(el.detailPill,"idle","Idle");
+        el.detailStarted.textContent="Waiting";
+        el.detailEnded.textContent="Waiting";
+        el.detailProgress.textContent="-";
+        el.detailMessage.textContent="No detail available yet.";
+        el.detailLog.textContent="No step-specific logs yet.";
+        el.detailLogCount.textContent="0 lines";
         return;
       }
 
-      suggestions.forEach(suggestion => {
-        const suggestionItem = document.createElement('div');
-        suggestionItem.textContent = suggestion;
-        suggestionItem.style.padding = '5px';
-        suggestionItem.style.cursor = 'pointer';
-
-        suggestionItem.addEventListener('click', () => {
-          inputElement.value = (path.trim().length > 0 ? path.trim() + ' ' : '') + suggestion; // Set the full suggestion as the input value
-          suggestionBox.style.display = 'none';
-          inputElement.focus();
-        });
-
-        suggestionBox.appendChild(suggestionItem);
-      });
-
-      const rect = inputElement.getBoundingClientRect();
-      suggestionBox.style.left = `${rect.left}px`;
-      suggestionBox.style.top = `${rect.bottom}px`;
-      suggestionBox.style.width = `${rect.width}px`;
-      suggestionBox.style.display = 'block';
+      const logs=getStepLogs(selected.id);
+      el.detailTitle.textContent=selected.title;
+      el.detailDescription.textContent=selected.description;
+      setPill(el.detailPill,selected.status,label(selected.status));
+      el.detailStarted.textContent=fmt(selected.startedAt);
+      el.detailEnded.textContent=fmt(selected.endedAt);
+      el.detailProgress.textContent=selected.progress===null?"-":`${selected.progress}%`;
+      el.detailMessage.textContent=selected.message;
+      el.detailLog.textContent=logs.length?logs.map(log=>`[${fmt(log.timestamp)}] ${log.message}`).join("\n"):"No step-specific logs yet.";
+      el.detailLogCount.textContent=`${logs.length} line${logs.length>1?"s":""}`;
+      el.detailLog.scrollTop=el.detailLog.scrollHeight;
     }
 
-    async function loadGmCommands() {
-      try {
-        const response = await fetch('/gm-commands.json');
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Loaded GM Commands:', data); // Debugging log
-          return data;
-        } else {
-          console.error('Failed to load GM commands');
-          return {};
-        }
-      } catch (error) {
-        console.error('Error loading GM commands:', error);
-        return {};
-      }
+    function renderInitialization(){
+      const completed=state.bootstrap.steps.filter(step=>step.status==="success").length;
+      el.initPhase.textContent=label(state.bootstrap.phase);
+      el.initProgress.textContent=`${completed} / ${state.bootstrap.steps.length||8}`;
+      renderStepList();
+      renderDetail();
     }
 
-    (async () => {
-      const gmCommands = await loadGmCommands();
+    function renderBootstrap(){setPill(el.globalPill,state.bootstrap.phase,label(state.bootstrap.phase));renderInitialization();updateVisibility()}
+    function setRuntimeTab(tab){const authActive=tab==="auth";el.authTab.classList.toggle("active",authActive);el.worldTab.classList.toggle("active",!authActive);el.authPanel.classList.toggle("active",authActive);el.worldPanel.classList.toggle("active",!authActive)}
+    function renderProcess(kind){const p=state[kind],pill=kind==="auth"?el.authPill:el.worldPill,st=kind==="auth"?el.authState:el.worldState,code=kind==="auth"?el.authCode:el.worldCode,upd=kind==="auth"?el.authUpdated:el.worldUpdated,log=kind==="auth"?el.authLog:el.worldLog,title=kind==="auth"?"Auth":"World";setPill(pill,p.running?"success":"pending",p.running?"Online":"Offline");st.textContent=p.running?"Running":"Stopped";code.textContent=String(p.code??0);upd.textContent=fmt(p.lastUpdatedAt||p.startedAt);log.textContent=p.output&&p.output.trim()?p.output:`${title} process is waiting for output...`;log.scrollTop=log.scrollHeight;updateCommandAvailability()}
 
-      input.addEventListener('input', () => {
-        const result = getSuggestions(input.value, gmCommands);
-        showSuggestions(result.suggestions, result.path, input);
-      });
-    })();
+    function isAuthenticated(){return sessionStorage.getItem("authenticated")==="true"}function unlocked(){return el.login.classList.contains("hidden")}function updateCommandAvailability(){const w=state.world.running&&unlocked();el.worldInput.disabled=!w;el.worldSend.disabled=!w;document.querySelectorAll(".worldAction").forEach(b=>b.disabled=!w)}
+    socket.on("bootstrap_state",b=>{state.bootstrap=b;if(state.selectedStepId&&!getStepById(state.selectedStepId))state.selectedStepId=null;renderBootstrap()});socket.on("authserver_state",p=>{state.auth=p;renderProcess("auth")});socket.on("worldserver_state",p=>{state.world=p;renderProcess("world")});
+    function send(kind,cmd){if(!cmd||!cmd.trim())return;socket.emit(`${kind}server_input`,cmd.trim());if(kind==="world"){gm.history.push(cmd.trim());gm.historyIndex=gm.history.length}}
+    el.authTab.addEventListener("click",()=>setRuntimeTab("auth"));el.worldTab.addEventListener("click",()=>setRuntimeTab("world"));el.worldSend.addEventListener("click",()=>{send("world",el.worldInput.value);el.worldInput.value="";hideSuggest()});document.querySelectorAll(".worldAction").forEach(b=>b.addEventListener("click",()=>{const message=b.dataset.confirm;if(message&&!window.confirm(message))return;send("world",b.dataset.command)}));
 
-    document.addEventListener('click', (e) => {
-      if (!suggestionBox.contains(e.target) && e.target !== input) {
-        suggestionBox.style.display = 'none';
-      }
-    });
-
-    let suggestionIndex = -1; // Track the current suggestion index
-
-    input.addEventListener('keydown', (e) => {
-      if (suggestionBox.style.display !== 'none') {
-        const suggestions = suggestionBox.children;
-        if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          if (suggestionIndex > 0) {
-            suggestionIndex--;
-          } else {
-            suggestionIndex = suggestions.length - 1;
-          }
-          updateSuggestionHighlight(suggestions);
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          if (suggestionIndex < suggestions.length - 1) {
-            suggestionIndex++;
-          } else {
-            suggestionIndex = 0;
-          }
-          updateSuggestionHighlight(suggestions);
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          if (suggestionIndex >= 0 && suggestionIndex < suggestions.length) {
-            suggestions[suggestionIndex].click();
-            suggestionIndex = -1; // Reset the index after selection
-          }
-        }
-      } else {
-        if (e.key === 'Enter') {
-          const command = input.value;
-          if (command.trim() !== '') {
-            commandHistory.push(command);
-            historyIndex = commandHistory.length;
-            socket.emit('worldserver_input', command);
-            input.value = '';
-          }
-        } else if (e.key === 'ArrowUp') {
-          if (historyIndex > 0) {
-            historyIndex--;
-            input.value = commandHistory[historyIndex];
-          } else if (historyIndex === 0) {
-            input.value = commandHistory[historyIndex];
-          }
-        } else if (e.key === 'ArrowDown') {
-          if (historyIndex < commandHistory.length - 1) {
-            historyIndex++;
-            input.value = commandHistory[historyIndex];
-          } else if (historyIndex === commandHistory.length - 1) {
-            input.value = '';
-          }
-        }
-      }
-    });
-
-    function updateSuggestionHighlight(suggestions) {
-      Array.from(suggestions).forEach((suggestion, index) => {
-        if (index === suggestionIndex) {
-          suggestion.style.backgroundColor = '#222'; // Highlight the selected suggestion
-        } else {
-          suggestion.style.backgroundColor = 'transparent';
-        }
-      });
-    }
-
-    const loginContainer = document.getElementById('login-container');
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const loginButton = document.getElementById('login-button');
-
-    function showLogin() {
-      loginContainer.classList.remove('hidden');
-    }
-
-    function hideLogin() {
-      loginContainer.classList.add('hidden');
-    }
-
-    function isAuthenticated() {
-      return sessionStorage.getItem('authenticated') === 'true';
-    }
-
-    async function authenticate(username, password) {
-      try {
-        const response = await fetch('/api/authenticate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, password }),
-        });
-
-        if (response.ok) {
-          return true;
-        } else {
-          const data = await response.json();
-          alert(data.message || 'Authentication failed');
-          return false;
-        }
-      } catch (error) {
-        console.error('Error during authentication:', error);
-        alert('An error occurred. Please try again later.');
-        return false;
-      }
-    }
-
-    async function checkAuthenticationRequirement() {
-      try {
-        const response = await fetch('/api/needAuthentication');
-        if (response.ok) {
-          const data = await response.json();
-          return data.needAuthentication;
-        } else {
-          console.error('Failed to check authentication requirement');
-          return false;
-        }
-      } catch (error) {
-        console.error('Error checking authentication requirement:', error);
-        return false;
-      }
-    }
-
-    (async () => {
-      const needAuthentication = await checkAuthenticationRequirement();
-      if (needAuthentication && !isAuthenticated()) {
-        showLogin();
-      } else {
-        hideLogin();
-      }
-    })();
-
-    if (!isAuthenticated()) {
-      showLogin();
-    }
-
-    loginButton.addEventListener('click', async () => {
-      const username = usernameInput.value;
-      const password = passwordInput.value;
-
-      if (await authenticate(username, password)) {
-        sessionStorage.setItem('authenticated', 'true');
-        hideLogin();
-      }
-    });
+    function getSuggestions(input,commands){if(input.trim()==="")return{suggestions:[],path:""};const parts=input.split(/\s+/);let cur=commands,sugs=[],path="";for(let i=0;i<parts.length;i++){const part=parts[i].toLowerCase().trim();if(cur&&Object.prototype.hasOwnProperty.call(cur,part)){cur=cur[part];path+=part+" "}else{const keys=cur?Object.keys(cur):[];sugs=input.endsWith(" ")?keys:keys.filter(k=>k.startsWith(part));break}}return{suggestions:sugs,path:path.trim()}}
+    function hideSuggest(){gm.suggestions=[];gm.index=-1;el.suggest.style.display="none";el.suggest.innerHTML=""}
+    function highlight(){Array.from(el.suggest.children).forEach((n,i)=>n.classList.toggle("active",i===gm.index))}
+    function showSuggest(suggestions,path,input){gm.suggestions=suggestions.map(s=>({label:s,value:(path.trim()?path.trim()+" ":"")+s}));gm.index=-1;el.suggest.innerHTML="";if(!gm.suggestions.length)return hideSuggest();gm.suggestions.forEach(s=>{const n=document.createElement("div");n.className="suggest-item";n.textContent=s.label;n.addEventListener("click",()=>{input.value=s.value;hideSuggest();input.focus()});el.suggest.appendChild(n)});const r=input.getBoundingClientRect();el.suggest.style.left=`${r.left}px`;el.suggest.style.top=`${r.bottom+8}px`;el.suggest.style.width=`${r.width}px`;el.suggest.style.display="block"}
+    el.worldInput.addEventListener("input",()=>{const r=getSuggestions(el.worldInput.value,gm.commands);showSuggest(r.suggestions,r.path,el.worldInput)});
+    el.worldInput.addEventListener("keydown",e=>{if(el.suggest.style.display!=="none"){const total=gm.suggestions.length;if(e.key==="ArrowDown"){e.preventDefault();gm.index=gm.index<total-1?gm.index+1:0;return highlight()}if(e.key==="ArrowUp"){e.preventDefault();gm.index=gm.index>0?gm.index-1:total-1;return highlight()}if(e.key==="Enter"&&gm.index>=0){e.preventDefault();const s=gm.suggestions[gm.index];if(s){el.worldInput.value=s.value;hideSuggest()}return}}if(e.key==="Enter"){send("world",el.worldInput.value);el.worldInput.value="";hideSuggest()}else if(e.key==="ArrowUp"){if(gm.historyIndex>0){gm.historyIndex--;el.worldInput.value=gm.history[gm.historyIndex]}}else if(e.key==="ArrowDown"){if(gm.historyIndex<gm.history.length-1){gm.historyIndex++;el.worldInput.value=gm.history[gm.historyIndex]}else{gm.historyIndex=gm.history.length;el.worldInput.value=""}}});
+    document.addEventListener("click",e=>{if(!el.suggest.contains(e.target)&&e.target!==el.worldInput)hideSuggest()});
+    async function loadGm(){try{const r=await fetch("/gm-commands.json");if(r.ok)gm.commands=await r.json()}catch(err){console.error("Failed to load GM commands",err)}}
+    async function auth(user,pass){const r=await fetch("/api/authenticate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:user,password:pass})});if(r.ok)return true;const d=await r.json().catch(()=>({message:"Authentication failed"}));alert(d.message||"Authentication failed");return false}
+    async function needAuth(){try{const r=await fetch("/api/needAuthentication");if(!r.ok)return false;const d=await r.json();return Boolean(d.needAuthentication)}catch(err){console.error("Authentication requirement lookup failed",err);return false}}
+    el.loginBtn.addEventListener("click",async()=>{if(await auth(el.username.value,el.password.value)){sessionStorage.setItem("authenticated","true");el.login.classList.add("hidden");updateCommandAvailability()}});el.password.addEventListener("keydown",e=>{if(e.key==="Enter")el.loginBtn.click()});
+    (async()=>{await loadGm();if(await needAuth()&&!isAuthenticated())el.login.classList.remove("hidden");setRuntimeTab("world");renderBootstrap();renderProcess("auth");renderProcess("world");updateCommandAvailability()})();
   </script>
 </body>
-
 </html>

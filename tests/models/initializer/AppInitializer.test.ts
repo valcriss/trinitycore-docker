@@ -1,5 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import AppInitializer from "../../../src/models/initializer/AppInitializer";
+
+const trackerMock = vi.hoisted(() => ({
+  reset: vi.fn(),
+  beginInitialization: vi.fn(),
+  markStepRunning: vi.fn(),
+  markStepSuccess: vi.fn(),
+  markStepError: vi.fn(),
+  markReady: vi.fn(),
+  markFailed: vi.fn(),
+}));
+
+vi.mock("../../../src/models/bootstrap/BootstrapTracker", () => ({
+  default: trackerMock,
+}));
 
 const createInitializer = (overrides?: Partial<Record<string, () => Promise<boolean>>>) => {
   return {
@@ -16,6 +30,10 @@ const createInitializer = (overrides?: Partial<Record<string, () => Promise<bool
 };
 
 describe("AppInitializer", () => {
+  beforeEach(() => {
+    Object.values(trackerMock).forEach((mock) => mock.mockReset());
+  });
+
   it("returns false on the first failing step", async () => {
     const initializer = createInitializer({
       checkDatabasesStructure: vi.fn().mockResolvedValue(false),
@@ -25,6 +43,7 @@ describe("AppInitializer", () => {
     const result = await appInitializer.initialize();
 
     expect(result).toBe(false);
+    expect(trackerMock.markStepError).toHaveBeenCalled();
     expect(initializer.checkDatabaseConnection).toHaveBeenCalled();
     expect(initializer.checkDatabasesStructure).toHaveBeenCalled();
     expect(initializer.checkDatabasesInitialData).not.toHaveBeenCalled();
@@ -58,6 +77,7 @@ describe("AppInitializer", () => {
     const result = await appInitializer.initialize();
 
     expect(result).toBe(true);
+    expect(trackerMock.markReady).toHaveBeenCalled();
     expect(initializer.checkClientMapData).toHaveBeenCalled();
   });
 });

@@ -118,8 +118,15 @@ describe("DatabaseInitializer", () => {
     const initializer = new DatabaseInitializer(database as never, makeProfile() as never);
     vi.spyOn(initializer as never, "fetchTrinityCoreReleases").mockResolvedValue(releases);
 
-    downloadFileMock.mockResolvedValue(undefined);
-    executeMock.mockResolvedValue(true);
+    downloadFileMock.mockImplementation(async (_url, _path, _name, onProgress) => {
+      onProgress?.({ receivedBytes: 1024, totalBytes: null, percent: null });
+      onProgress?.({ receivedBytes: 2048, totalBytes: 4096, percent: 50 });
+    });
+    executeMock.mockImplementation((_cmd, _args, _cwd, stdoutCb, stderrCb) => {
+      stdoutCb?.(Buffer.from("extracting"));
+      stderrCb?.(Buffer.from("warning"));
+      return Promise.resolve(true);
+    });
 
     const result = await initializer.downloadInitialData();
 
@@ -174,7 +181,11 @@ describe("DatabaseInitializer", () => {
   });
 
   it("updates the application database", async () => {
-    executeMock.mockResolvedValue(true);
+    executeMock.mockImplementation((_cmd, _args, _cwd, stdoutCb, stderrCb) => {
+      stdoutCb?.(Buffer.from("out"));
+      stderrCb?.(Buffer.from("err"));
+      return Promise.resolve(true);
+    });
     const database = { execute: vi.fn() };
     const initializer = new DatabaseInitializer(database as never, makeProfile() as never);
 

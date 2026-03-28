@@ -1,19 +1,23 @@
 services:
-  trinitycore:
-    build:
-      context: .
-      dockerfile: Dockerfile.1120
+  trinitycore-docker:
+    image: danielsilvestre37/trinitycore-docker:master
     restart: unless-stopped
     environment:
       - PUBLIC_IP_ADDRESS=127.0.0.1
+      # - REALM_NAME=TrinityCore Server
       # - ACCESS_USERNAME=admin
       # - ACCESS_PASSWORD=admin
+      # Optional Trinity config overrides at startup:
+      # Pattern: TC_WORLD__Section__Key=value  -> Section.Key = value
+      # Pattern: TC_AUTH__Section__Key=value   -> Section.Key = value
+      # - TC_WORLD__Rate__XP__Kill=3
+      # - TC_WORLD__PlayerLimit=200
+      # - TC_WORLD__Motd="Welcome to my realm"
+      # - TC_AUTH__Battlenet__PasswordChangeSecurity=0
     volumes:
-      - ./server/data:/app/server/data
-      #- ./fullchain.pem:/app/server/bin/bnetserver.cert.pem
-      #- ./privkey.pem:/app/server/bin/bnetserver.key.pem      
+      - server_data:/app/server/data
+      - server_logs:/app/server/logs
       - ./client:/app/client # Mount the client directory    
-      - ./server/logs:/app/server/logs      
       - type: tmpfs
         target: /app/tmp
     depends_on:
@@ -24,21 +28,19 @@ services:
       - "1119:1119"
       - "8081:8081"
       - "3000:3000" # Web server
-    deploy:
-      resources:
-        limits:
-          cpus: "4.0"
-          memory: "8g"
-        reservations:
-          cpus: "4.0"
-          memory: "8g"
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: "4.0"
+    #      memory: "8g"
+    #    reservations:
+    #      cpus: "4.0"
+    #      memory: "8g"
   database:
     image: mysql:8.4.4
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: trinityroot
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -48,3 +50,5 @@ services:
       retries: 3
 volumes:
   db_data:
+  server_data:
+  server_logs:

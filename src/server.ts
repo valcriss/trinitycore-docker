@@ -9,6 +9,7 @@ import ProfileLoader from './models/profiles/ProfileLoader';
 import IProfile from './models/profiles/IProfile';
 import CommandRunner from './models/tools/CommandRunner';
 import AppInitializer from './models/initializer/AppInitializer';
+import bootstrapTracker from './models/bootstrap/BootstrapTracker';
 
 const app = express();
 const server = http.createServer(app);
@@ -25,9 +26,62 @@ const authServerRunner = new CommandRunner(profile.getAuthServerBinary(), ["--co
 const worldServerRunner = new CommandRunner(profile.getWorldServerBinary(), ["--config", profile.getWorldServerConfigurationPath()], '/app/server/bin');
 const appInitializer = new AppInitializer(profile.getInitializer());
 
-(async () => {
+function emitBootstrapState() {
+  io.emit('bootstrap_state', bootstrapTracker.getSnapshot());
+}
 
-  consoleHelper.writeBox('TrinityCore Docker 1.0.0 [ ' + profile.getName() + ' ]');
+function emitProcessState() {
+  io.emit('authserver_state', {
+    output: authServerRunner.getOutput(),
+    running: authServerRunner.isRunning(),
+    code: authServerRunner.getCode(),
+    startedAt: authServerRunner.getStartedAt(),
+    lastUpdatedAt: authServerRunner.getLastUpdatedAt()
+  });
+  io.emit('worldserver_state', {
+    output: worldServerRunner.getOutput(),
+    running: worldServerRunner.isRunning(),
+    code: worldServerRunner.getCode(),
+    startedAt: worldServerRunner.getStartedAt(),
+    lastUpdatedAt: worldServerRunner.getLastUpdatedAt()
+  });
+}
+
+bootstrapTracker.on('update', emitBootstrapState);
+
+io.on('connection', (socket) => {
+  socket.on('worldserver_input', (input) => {
+    worldServerRunner.send(input);
+  });
+  socket.on('authserver_input', (input) => {
+    authServerRunner.send(input);
+  });
+
+  socket.emit('bootstrap_state', bootstrapTracker.getSnapshot());
+  socket.emit('authserver_state', {
+    output: authServerRunner.getOutput(),
+    running: authServerRunner.isRunning(),
+    code: authServerRunner.getCode(),
+    startedAt: authServerRunner.getStartedAt(),
+    lastUpdatedAt: authServerRunner.getLastUpdatedAt()
+  });
+  socket.emit('worldserver_state', {
+    output: worldServerRunner.getOutput(),
+    running: worldServerRunner.isRunning(),
+    code: worldServerRunner.getCode(),
+    startedAt: worldServerRunner.getStartedAt(),
+    lastUpdatedAt: worldServerRunner.getLastUpdatedAt()
+  });
+});
+
+consoleHelper.writeBox('TrinityCore Docker 1.0.0 [ ' + profile.getName() + ' ]');
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+(async () => {
+  emitBootstrapState();
+  emitProcessState();
 
   if (!await appInitializer.initialize()) {
     return;
@@ -35,44 +89,11 @@ const appInitializer = new AppInitializer(profile.getInitializer());
 
   consoleHelper.writeBox('Application Startup Complete');
 
-  io.on('connection', (socket) => {
-    socket.on('worldserver_input', (input) => {
-      worldServerRunner.send(input);
-    });
-    socket.on('authserver_input', (input) => {
-      authServerRunner.send(input);
-    });
-
-    socket.emit('authserver_state', {
-      output: authServerRunner.getOutput(),
-      running: authServerRunner.isRunning(),
-      code: authServerRunner.getCode()
-    });
-    socket.emit('worldserver_state', {
-      output: worldServerRunner.getOutput(),
-      running: worldServerRunner.isRunning(),
-      code: worldServerRunner.getCode()
-    });
-  });
-
   authServerRunner.start(() => {
-    io.emit('authserver_state', {
-      output: authServerRunner.getOutput(),
-      running: authServerRunner.isRunning(),
-      code: authServerRunner.getCode()
-    });
+    emitProcessState();
   });
 
   worldServerRunner.start(() => {
-    io.emit('worldserver_state', {
-      output: worldServerRunner.getOutput(),
-      running: worldServerRunner.isRunning(),
-      code: worldServerRunner.getCode()
-    });
-  });
-
-  // Start the server
-  server.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    emitProcessState();
   });
 })();

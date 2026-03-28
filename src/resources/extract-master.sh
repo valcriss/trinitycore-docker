@@ -1,15 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
 cd /app/client
 /app/server/bin/mapextractor
 cp -r cameras dbc maps gt /app/server/data
 
 cd /app/client
 /app/server/bin/vmap4extractor
-mkdir vmaps
+mkdir -p vmaps
 /app/server/bin/vmap4assembler Buildings vmaps
 cp -r vmaps /app/server/data
 
 cd /app/client
-mkdir mmaps
+mkdir -p mmaps
 /app/server/bin/mmaps_generator
 cp -r mmaps /app/server/data
 

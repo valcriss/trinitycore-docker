@@ -4,6 +4,8 @@ let initializeResult = true;
 let connectionHandler: ((socket: any) => void) | null = null;
 const ioEmit = vi.fn();
 const runners: Array<{ send: ReturnType<typeof vi.fn> }> = [];
+const trackerOn = vi.fn();
+const trackerSnapshot = { phase: "idle", headline: "Waiting", steps: [], events: [], logs: [] };
 
 vi.mock("express", () => {
   const app = { use: vi.fn() };
@@ -91,6 +93,21 @@ vi.mock("../src/models/tools/CommandRunner", () => ({
     getCode() {
       return 0;
     }
+
+    getStartedAt() {
+      return null;
+    }
+
+    getLastUpdatedAt() {
+      return null;
+    }
+  },
+}));
+
+vi.mock("../src/models/bootstrap/BootstrapTracker", () => ({
+  default: {
+    on: trackerOn,
+    getSnapshot: () => trackerSnapshot,
   },
 }));
 
@@ -107,15 +124,17 @@ describe("server", () => {
     initializeResult = true;
     connectionHandler = null;
     ioEmit.mockReset();
+    trackerOn.mockReset();
     runners.length = 0;
     vi.resetModules();
   });
 
-  it("stops when initialization fails", async () => {
+  it("keeps the socket layer online even when initialization fails", async () => {
     initializeResult = false;
     await import("../src/server");
 
-    expect(connectionHandler).toBeNull();
+    expect(connectionHandler).not.toBeNull();
+    expect(trackerOn).toHaveBeenCalledWith("update", expect.any(Function));
   });
 
   it("wires socket handlers and emits state", async () => {
@@ -134,6 +153,7 @@ describe("server", () => {
 
     connectionHandler?.(socket);
 
+    expect(socket.emit).toHaveBeenCalledWith("bootstrap_state", trackerSnapshot);
     expect(socket.emit).toHaveBeenCalledWith("authserver_state", expect.any(Object));
     expect(socket.emit).toHaveBeenCalledWith("worldserver_state", expect.any(Object));
 

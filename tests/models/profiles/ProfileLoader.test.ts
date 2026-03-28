@@ -22,11 +22,11 @@ describe("ProfileLoader", () => {
     expect(profile.getName()).toContain("4.4.2");
   });
 
-  it("loads profile 11.1.0", async () => {
-    process.env.TRINITYCORE_VERSION = "11.1.0";
+  it("loads profile master", async () => {
+    process.env.TRINITYCORE_VERSION = "master";
     const ProfileLoader = (await import("../../../src/models/profiles/ProfileLoader")).default;
     const profile = ProfileLoader.loadProfile();
-    expect(profile.getName()).toContain("11.1.0");
+    expect(profile.getName()).toContain("master");
   });
 
   it("throws for unsupported versions", async () => {

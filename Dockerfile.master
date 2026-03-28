@@ -2,7 +2,7 @@
 # Build arguments
 #-----------------------------------------------------------------------------
 ARG TRINITYCORE_BRANCH=master
-ARG TRINITYCORE_VERSION=11.2.0
+ARG TRINITYCORE_VERSION=master
 
 #-----------------------------------------------------------------------------
 # Step 1 : Build the backend
@@ -23,12 +23,12 @@ COPY ./src/public /app/dist/public
 #-----------------------------------------------------------------------------
 # Step 2 : Build TrinityCore
 #-----------------------------------------------------------------------------
-FROM ubuntu:22.04 AS trinitycore_build
+FROM ubuntu:24.04 AS trinitycore_build
 
 ARG TRINITYCORE_BRANCH
 
 # Install only build dependencies
-RUN apt-get -yq update && apt-get -yq install curl git clang make gcc g++ libmysqlclient-dev \
+RUN apt-get -yq update && apt-get -yq install curl git clang make gcc g++ default-libmysqlclient-dev \
     libssl-dev libbz2-dev libreadline-dev libncurses-dev libboost-all-dev mysql-client ca-certificates && \
     update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100 && \
     update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang 100 && \
@@ -55,7 +55,7 @@ RUN git clone -b ${TRINITYCORE_BRANCH} --depth=1 https://github.com/TrinityCore/
 #-----------------------------------------------------------------------------
 # Step 3 : Final image
 #-----------------------------------------------------------------------------
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ARG TRINITYCORE_VERSION
 
@@ -69,7 +69,7 @@ COPY --from=trinitycore_build /app/TrinityCore /app/TrinityCore
 ## Install dependencies
 RUN apt-get -yq update && apt-get -yq install curl && \
     curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
-    apt-get -yq install nodejs git libmysqlclient-dev libssl-dev libbz2-dev \
+    apt-get -yq install nodejs git default-libmysqlclient-dev libssl-dev libbz2-dev \
     libreadline-dev libncurses-dev libboost-all-dev mysql-client ca-certificates p7zip-full && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 

@@ -11,6 +11,8 @@ class CommandRunner {
   private buffer: string;
   private running: boolean;
   private code: number;
+  private startedAt: string | null;
+  private lastUpdatedAt: string | null;
 
   constructor(binaryPath: string, params: Array<string>, binaryCwd: string) {
     this.binaryCwd = binaryCwd;
@@ -20,29 +22,45 @@ class CommandRunner {
     this.buffer = '';
     this.running = false;
     this.code = 0;
+    this.startedAt = null;
+    this.lastUpdatedAt = null;
   }
 
   start(onUpdate: UpdateHandler | null = null) {
     this.commandExecuter.execute(this.binaryPath, this.params, this.binaryCwd, (stdout: Buffer) => {
       this.buffer += stdout.toString();
       this.truncateBuffer();
+      this.lastUpdatedAt = new Date().toISOString();
       if (onUpdate) {
         onUpdate();
       }
     }, (stderr: Buffer) => {
       this.buffer += stderr.toString();
       this.truncateBuffer();
+      this.lastUpdatedAt = new Date().toISOString();
       if (onUpdate) {
         onUpdate();
       }
     }, (code: number | null) => {
       this.code = code ?? 0;
       this.running = false;
+      this.lastUpdatedAt = new Date().toISOString();
+      if (onUpdate) {
+        onUpdate();
+      }
+    }).catch((error: Error) => {
+      this.buffer += `\n[process-error] ${error.message}\n`;
+      this.truncateBuffer();
+      this.running = false;
+      this.lastUpdatedAt = new Date().toISOString();
       if (onUpdate) {
         onUpdate();
       }
     });
     this.running = true;
+    this.code = 0;
+    this.startedAt = new Date().toISOString();
+    this.lastUpdatedAt = this.startedAt;
     if (onUpdate) {
       onUpdate();
     }
@@ -64,6 +82,14 @@ class CommandRunner {
 
   getCode() {
     return this.code;
+  }
+
+  getStartedAt() {
+    return this.startedAt;
+  }
+
+  getLastUpdatedAt() {
+    return this.lastUpdatedAt;
   }
 
   truncateBuffer() {

@@ -38,6 +38,8 @@ describe("CommandRunner", () => {
 
     expect(runner.isRunning()).toBe(false);
     expect(runner.getCode()).toBe(0);
+    expect(runner.getStartedAt()).not.toBeNull();
+    expect(runner.getLastUpdatedAt()).not.toBeNull();
     expect(runner.getOutput()).toContain("line1");
     expect(runner.getOutput()).toContain("line2");
     expect(onUpdate).toHaveBeenCalled();
@@ -74,5 +76,18 @@ describe("CommandRunner", () => {
     runner.send("status");
 
     expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("captures process failures without throwing unhandled rejections", async () => {
+    executeMock.mockImplementation(() => Promise.reject(new Error("Process exited with code 1")));
+    const runner = new CommandRunner("/bin/app", [], "/tmp");
+    const onUpdate = vi.fn();
+
+    runner.start(onUpdate);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(runner.isRunning()).toBe(false);
+    expect(runner.getOutput()).toContain("[process-error] Process exited with code 1");
+    expect(onUpdate).toHaveBeenCalled();
   });
 });
