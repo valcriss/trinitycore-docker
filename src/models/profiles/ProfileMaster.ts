@@ -2,9 +2,9 @@ import InitializerRegular from "../initializer/InitializerRegular";
 import IProfile from "./IProfile";
 import IInitializer from "../initializer/IInitializer";
 
-class Profile1110 implements IProfile {
+class ProfileMaster implements IProfile {
   getName(): string {
-    return "WoW 11.1.0 (Dragonflight)";
+    return "WoW master";
   }
   getAuthServerBinary(): string {
     return "/app/server/bin/bnetserver";
@@ -19,23 +19,23 @@ class Profile1110 implements IProfile {
     return "/app/server/etc/worldserver.conf";
   }
   getInitializeDatabasePath(): string {
-    return "create-mysql-1110.sql";
+    return "create-mysql-master.sql";
   }
   getInitialDatabaseNamePattern(): string {
     return "TDB_full_1";
   }
   getExtractScriptPath(): string {
-    return "extract-1110.sh";
+    return "extract-master.sh";
   }
   getInitializer(): IInitializer {
     return new InitializerRegular(this);
   }
   getSourceAuthConfigurationPath(): string {
-    return "bnetserver.1110.conf.dist";
+    return "bnetserver.master.conf.dist";
   }
   getSourceWorldConfigurationPath(): string {
-    return "worldserver.1110.conf.dist";
+    return "worldserver.master.conf.dist";
   }
 }
 
-export default Profile1110;
+export default ProfileMaster;

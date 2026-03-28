@@ -11,6 +11,6 @@ describe("Index route", () => {
 
     handler(req, res);
 
-    expect(res.sendFile).toHaveBeenCalledWith(expect.stringContaining("public/index.html"));
+    expect(res.sendFile).toHaveBeenCalledWith(expect.stringMatching(/public[\\/]+index\.html$/));
   });
 });

@@ -48,12 +48,12 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/valcriss/trinitycor
 mkdir client
 ```
 
-TrinityCore 11.2.0
+TrinityCore master
 
 ```bash
 mkdir trinitycore-docker
 cd trinitycore-docker
-curl -o docker-compose.yml https://raw.githubusercontent.com/valcriss/trinitycore-docker/refs/heads/main/docker-compose.1120.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/valcriss/trinitycore-docker/refs/heads/main/docker-compose.master.yml
 mkdir client
 ```
 

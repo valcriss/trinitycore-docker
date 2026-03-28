@@ -17,9 +17,9 @@ jobs:
           - name: 4.4.2
             dockerfile: ./Dockerfile.442
             tag: danielsilvestre37/trinitycore-docker:4.4.2
-          - name: 11.2.0
-            dockerfile: ./Dockerfile.1120
-            tag: danielsilvestre37/trinitycore-docker:11.2.0
+          - name: master
+            dockerfile: ./Dockerfile.master
+            tag: danielsilvestre37/trinitycore-docker:master
 
     steps:
       - name: Checkout code

@@ -1,5 +1,5 @@
 import IProfile from "./IProfile";
-import Profile1110 from "./Profile1110";
+import ProfileMaster from "./ProfileMaster";
 import Profile335 from "./Profile335";
 import Profile442 from "./Profile442";
 
@@ -11,8 +11,8 @@ class ProfileLoader {
         return new Profile335();
       case '4.4.2':
         return new Profile442();
-      case '11.1.0':
-        return new Profile1110();
+      case 'master':
+        return new ProfileMaster();
       default:
         throw new Error(`Unsupported version: ${version}`);
     }

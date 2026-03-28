@@ -7,6 +7,7 @@ import IProfile from "../profiles/IProfile";
 import FileDownloader from "../tools/FileDownloader";
 import CommandExecuter from "../tools/CommandExecuter";
 import GithubRelease from "../types/GithubRelease";
+import bootstrapTracker from "../bootstrap/BootstrapTracker";
 
 class DatabaseInitializer {
   private database: Database;
@@ -53,16 +54,36 @@ class DatabaseInitializer {
       const filename = latestRelease.assets[0].name;
 
       const fileDownloader = new FileDownloader();
-      await fileDownloader.downloadFile(downloadUrl, '/app/server/bin', filename);
+      bootstrapTracker.addEvent(`Downloading ${filename}`, "info", "database-seed");
+      await fileDownloader.downloadFile(downloadUrl, '/app/server/bin', filename, ({ percent, receivedBytes }) => {
+        const progressMessage = percent === null
+          ? `Downloading ${filename} (${Math.round(receivedBytes / 1024 / 1024)} MB received)`
+          : `Downloading ${filename} (${percent}%)`;
+
+        const mappedProgress = percent === null ? null : Math.max(5, Math.min(75, percent));
+        bootstrapTracker.updateStepProgress("database-seed", mappedProgress, progressMessage);
+      });
 
       const extractPath = '/app/server/bin/';
+      bootstrapTracker.updateStepProgress("database-seed", 80, `Extracting ${filename}...`);
 
-      const result = await commandExecuter.execute(`/usr/bin/7z`, [`x`, `/app/server/bin/${filename}`, `-o${extractPath}`, `-y`], '/app/server/bin');
+      const result = await commandExecuter.execute(
+        `/usr/bin/7z`,
+        [`x`, `/app/server/bin/${filename}`, `-o${extractPath}`, `-y`],
+        '/app/server/bin',
+        (stdout: Buffer) => {
+          bootstrapTracker.addLog(stdout.toString(), "database-seed");
+        },
+        (stderr: Buffer) => {
+          bootstrapTracker.addLog(stderr.toString(), "database-seed");
+        }
+      );
       if (!result) {
         return false;
       }
 
       fs.unlinkSync('/app/server/bin/' + filename);
+      bootstrapTracker.updateStepProgress("database-seed", 100, `Initial data archive ${filename} extracted.`);
 
       return true;
     } catch {
@@ -72,7 +93,18 @@ class DatabaseInitializer {
 
   public async updateApplicationDatabase() {
     const commandExecuter = new CommandExecuter();
-    return await commandExecuter.execute(`/app/server/bin/worldserver`, [`-u`], '/app/server/bin');
+    bootstrapTracker.addEvent("Running worldserver -u", "info", "database-update");
+    return await commandExecuter.execute(
+      `/app/server/bin/worldserver`,
+      [`-u`],
+      '/app/server/bin',
+      (stdout: Buffer) => {
+        bootstrapTracker.addLog(stdout.toString(), "database-update");
+      },
+      (stderr: Buffer) => {
+        bootstrapTracker.addLog(stderr.toString(), "database-update");
+      }
+    );
   }
 
   public async updateRealmInformations() {
