@@ -1,36 +1,54 @@
-# TrinityCore Docker Environment
-![Action State](https://github.com/valcriss/trinitycore-docker/actions/workflows/docker-build-push.yml/badge.svg)  
+# TrinityCore Docker
 
-This project provides a Dockerized environment for experimenting, developing, and researching with the [TrinityCore](https://www.trinitycore.info/) World of Warcraft server emulator. It is intended for educational and non-commercial use only.
+![Build Status](https://github.com/valcriss/trinitycore-docker/actions/workflows/docker-build-push.yml/badge.svg)
 
-## 🚀 Features
-- Easy setup with Docker Compose
-- Automated database initialization and data extraction
-- Minimal manual intervention required
-- Web interface for interacting with the worldserver process
+Run a TrinityCore server stack with a web interface, automated bootstrap, and a setup flow that is much closer to "start it and watch it come alive" than "assemble everything by hand".
 
-## ⚙️ Requirements
+This project packages TrinityCore, MySQL, the bootstrap logic, and an operational web UI into a Docker-based environment for learning, experimentation, and private server research.
+
+## Why This Project
+
+Getting a TrinityCore environment running locally usually means juggling database dumps, configuration files, extraction tools, and long initialization phases with very little feedback.
+
+This repository smooths that out by giving you:
+
+- a ready-to-run Docker environment
+- automatic database creation and bootstrap
+- client data extraction from your own WoW client files
+- a web interface available as soon as the container starts
+- live visibility into initialization progress
+- runtime monitoring for the Auth/Bnet and World processes
+
+## Supported Profiles
+
+| Profile | TrinityCore Branch | Compose File | Docker Tag |
+| --- | --- | --- | --- |
+| `3.3.5` | `3.3.5` | `docker-compose.335.yml` | `3.3.5` |
+| `4.4.2` | `cata_classic` | `docker-compose.442.yml` | `4.4.2` |
+| `master` | `master` | `docker-compose.master.yml` | `master` |
+
+The `master` profile is intentionally treated as a moving channel. It tracks the current TrinityCore `master` branch instead of pinning the application logic to a specific retail version number.
+
+## What You Get
+
+- TrinityCore server binaries built inside Docker
+- MySQL database service
+- bootstrap logic for schema setup, seed download, updates, and realm configuration
+- extraction scripts for client data
+- a browser UI on port `3000`
+- runtime command access for `worldserver`
+
+## Requirements
+
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- a compatible World of Warcraft client for the profile you want to run
 
-## 📦 What's Included
-- Multiple TrinityCore cores
-- Automated setup scripts
-- MySQL database server
-- Web interface for server interaction
+## Quick Start
 
-## 📁 Project Structure
+Choose the profile you want, create a working directory, and fetch the matching compose file.
 
-```
-trinitycore-docker/
-├── client/     # Folder where you must place the WoW client files
-└── docker-compose.yml
-```
-
-## 🛠️ Installation Steps
-1. **Prepare directories and retreive the require files**
-
-TrinityCore 3.3.5
+### TrinityCore 3.3.5
 
 ```bash
 mkdir trinitycore-docker
@@ -39,7 +57,7 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/valcriss/trinitycor
 mkdir client
 ```
 
-TrinityCore 4.4.2
+### TrinityCore 4.4.2
 
 ```bash
 mkdir trinitycore-docker
@@ -48,7 +66,7 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/valcriss/trinitycor
 mkdir client
 ```
 
-TrinityCore master
+### TrinityCore master
 
 ```bash
 mkdir trinitycore-docker
@@ -57,147 +75,125 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/valcriss/trinitycor
 mkdir client
 ```
 
-1. **Place your WoW client files in the `client/` directory**
+Then:
 
-2. **Edit in the docker-compose.yml file the environment section according to your needs (public ip address, 127.0.0.1 if your computer hosts the game and the server).**
+1. Place your WoW client files in the `client/` directory.
+2. Edit the `environment` section in `docker-compose.yml` if needed.
+3. Start the stack:
 
-3. **Start the environment**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-The system will automatically:
-- Download and initialize required databases
-- Extract map and DBC data from your client files
-- Start both `authserver` or `bnetserver` and `worldserver`
+## What Happens On First Start
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                         TrinityCore 335 Docker 1.0.0                         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+The application bootstraps itself automatically:
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                         Checking database connection                         ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Connection to database successful.                                           ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+- waits for MySQL to become available
+- creates the required databases
+- downloads the initial TrinityCore data dump
+- runs TrinityCore database updates
+- updates realm information
+- extracts client maps and related data
+- starts the Auth/Bnet and World processes
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                         Checking databases structure                         ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Databases are initialized.                                                   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+The web interface is available immediately and shows the initialization progress live, so you do not have to guess whether the environment is stuck or still working.
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                           Checking databases data                            ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Databases are not empty.                                                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+## Web Interface
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                   Updating auth server configuration files                   ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Writing auth server configuration successful.                                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+Once the stack is running, open:
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                  Updating world server configuration files                   ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Writing world server configuration successful.                               ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                        Updating application database                         ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Application database update successful.                                      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                         Updating realm informations                          ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Realm informations update successful.                                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                           Checking client map data                           ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Client map data present.                                                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                         Application Startup Complete                         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                Web interface listening on http://0.0.0.0:3000                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+```text
+http://localhost:3000
 ```
 
+The UI gives you:
 
-## 🧪 Using the Server
-After startup, you can access the web interface to control the server:
+- a dedicated initialization view with live step tracking
+- detailed logs for the current bootstrap step
+- a runtime view after bootstrap completes
+- separate tabs for Auth/Bnet and World
+- quick actions and command input for `worldserver`
 
-```http
-http://<container-ip>:3000
+## Development Mode
+
+If you want bind mounts for local data and logs, use the dev compose files from the repository:
+
+- `docker-compose.dev.335.yml`
+- `docker-compose.dev.442.yml`
+- `docker-compose.dev.master.yml`
+
+Typical launch command:
+
+```bash
+docker compose -f docker-compose.dev.master.yml up --build
 ```
 
-Through the web interface, you can send commands to `worldserver`, such as creating game accounts.
+For dev mode, you will usually want:
 
-![Screenshot of the web interface](./docs/web-interface.png)
+- `client/` with the correct WoW client data
+- `server/data/` as the extraction target
+- `server/logs/` for TrinityCore logs
 
+## Authentication
 
-> ⚠️ Don’t forget to edit your **realmlist.wtf** or **Config.wtf** file to point to the container’s IP address.
+The web UI can be protected with credentials.
 
-## 🔒 User Authentication
-
-The web interface now includes a secure authentication mechanism to restrict access. Users must log in with a valid username and password to interact with the server.
-
-### How It Works:
-- **Login Page**: Upon accessing the web interface, users are prompted to log in if authentication is enabled.
-- **Environment Configuration**: Set the `ACCESS_USERNAME` and `ACCESS_PASSWORD` environment variables in the `docker-compose.yml` file to define the credentials.
-- **Session Management**: Once authenticated, the session remains active until the browser is closed.
-
-> ⚠️ Ensure you configure strong credentials to secure your server.
-
-## Environment Overrides For Trinity Config
-
-You can override TrinityCore `.conf` properties at container startup with environment variables.
-
-- Worldserver prefix: `TC_WORLD__`
-- Auth/Bnet prefix: `TC_AUTH__`
-- Key format: replace `.` with `__`
-
-Examples:
+Set these environment variables in your compose file:
 
 ```yaml
 environment:
-	- TC_WORLD__Rate__XP__Kill=3
-	- TC_WORLD__PlayerLimit=200
-	- TC_WORLD__Motd="Welcome to my realm"
-	- TC_AUTH__Battlenet__PasswordChangeSecurity=0
+  - ACCESS_USERNAME=admin
+  - ACCESS_PASSWORD=change-me
 ```
 
-How it works:
-- `TC_WORLD__Rate__XP__Kill=3` becomes `Rate.XP.Kill = 3` in `worldserver.conf`
-- `TC_AUTH__Battlenet__PasswordChangeSecurity=0` becomes `Battlenet.PasswordChangeSecurity = 0` in auth config
-- If a key already exists, its value is replaced.
-- If a key does not exist, it is appended at the end of the file.
+If credentials are defined, the UI requires login before allowing runtime interaction.
 
-## ❓ Notes
-- A compatible WoW client is required, but **not provided**.
-- All databases (`auth`, `characters`, `world`) are automatically created and populated at first run.
-- Account creation is handled via the web UI or TrinityCore commands.
+## TrinityCore Configuration Overrides
 
-⚠️ This project is not affiliated with or endorsed by Blizzard Entertainment or TrinityCore. Use of the trinitycore emulator is intended strictly for educational and non-commercial purposes.
+You can override TrinityCore `.conf` values at container startup using environment variables.
 
-## 💡 Troubleshooting & Tips
-- Ensure the WoW client version is **exactly 3.3.5a (12340)** for extraction to succeed.
-- If the client files are not correctly placed in `client/`, extraction and setup will fail.
-- Use `docker logs <container-name>` for debugging.
+- Worldserver prefix: `TC_WORLD__`
+- Auth/Bnet prefix: `TC_AUTH__`
+- Replace `.` with `__`
 
-## 🤝 Contributing
-Contributions are welcome! Feel free to open issues or submit pull requests.
+Example:
 
-## 📜 License
-This project is open-source under the MIT License.
+```yaml
+environment:
+  - TC_WORLD__Rate__XP__Kill=3
+  - TC_WORLD__PlayerLimit=200
+  - TC_WORLD__Motd=Welcome to my realm
+  - TC_AUTH__Battlenet__PasswordChangeSecurity=0
+```
 
+That becomes:
+
+- `Rate.XP.Kill = 3` in `worldserver.conf`
+- `PlayerLimit = 200` in `worldserver.conf`
+- `Motd = Welcome to my realm` in `worldserver.conf`
+- `Battlenet.PasswordChangeSecurity = 0` in the auth config
+
+If a key already exists, it is replaced. If it does not exist, it is appended to the end of the file.
+
+## Notes
+
+- WoW client files are required but are not provided by this repository.
+- The first bootstrap can take time, especially during extraction.
+- The `master` profile follows TrinityCore `master`, so its supported client version can evolve over time.
+- This project is not affiliated with or endorsed by Blizzard Entertainment or TrinityCore.
+
+## Troubleshooting
+
+- Make sure the WoW client version matches the selected profile.
+- If extraction fails, verify that the `client/` directory contains a complete client installation.
+- If bootstrap fails, check the web UI first, then container logs.
+- If you are hosting the server and client on the same machine, `PUBLIC_IP_ADDRESS=127.0.0.1` is usually the simplest choice.
+
+## Contributing
+
+Issues and pull requests are welcome. If you improve bootstrap reliability, the UI, or profile support, that is especially valuable for the project.
+
+## License
+
+This project is open source and distributed under the MIT License.
