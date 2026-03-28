@@ -55,7 +55,7 @@ class DatabaseInitializer {
 
       const fileDownloader = new FileDownloader();
       bootstrapTracker.addEvent(`Downloading ${filename}`, "info", "database-seed");
-      await fileDownloader.downloadFile(downloadUrl, '/app/server/bin', filename, ({ percent, receivedBytes, totalBytes }) => {
+      await fileDownloader.downloadFile(downloadUrl, '/app/server/bin', filename, ({ percent, receivedBytes }) => {
         const progressMessage = percent === null
           ? `Downloading ${filename} (${Math.round(receivedBytes / 1024 / 1024)} MB received)`
           : `Downloading ${filename} (${percent}%)`;
